@@ -66,7 +66,7 @@ Detaylı açıklama: (Opsiyonel, 72 karakterlik satırlar halinde)
 - `refactor:` Kodda değişiklik, ancak işlevsellik değişmiyor
 - `docs:` Dokümantasyon değişiklikleri
 - `test:` Test ekleme/güncelleme
-- `chore:` Yapılandırma veya bağımlılık güncellemeleri
+- `job:` Yapılandırma veya bağımlılık güncellemeleri
 
 📌 **Örnek Commit:**
 ```
