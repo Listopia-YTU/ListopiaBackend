@@ -63,7 +63,7 @@ Detaylı açıklama: (Opsiyonel, 72 karakterlik satırlar halinde)
 **Tür (Commit Tipleri):**
 - `feat:` Yeni bir özellik ekleme
 - `fix:` Hata düzeltme
-- `refactor:` Kodda değişiklik, ancak işlevsellik değişmiyor
+- `refac:` Kodda değişiklik, ancak işlevsellik değişmiyor
 - `docs:` Dokümantasyon değişiklikleri
 - `test:` Test ekleme/güncelleme
 - `job:` Yapılandırma veya bağımlılık güncellemeleri
