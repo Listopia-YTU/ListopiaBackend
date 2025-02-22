@@ -14,6 +14,8 @@ import java.util.Map;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    // Eger bir methoda yanlis parametre yollarsak Spring MethodArgumentNotValidException yollayacaktir
+    // Bu hataya karsilik olarak mesaji ve 400 kodlu BAD_REQUEST statusunu gonderiyoruz
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, String>> myMethodArgumentNotValidException(MethodArgumentNotValidException e){
 
