@@ -1,0 +1,27 @@
+# .clang-format for Java (Okunabilirlik ve En İyi Uygulamalar için Optimize Edildi)
+
+BasedOnStyle: Google
+Language: Java
+
+# 🛠️ Girintileme ve Biçimlendirme
+IndentWidth: 4                # 4 boşluk kullanarak girintileme
+TabWidth: 4                   # Tab boyutu 4 (UseTab kapalı olduğu için kullanılmaz)
+UseTab: Never                 # Tab yerine her zaman boşluk kullan
+ColumnLimit: 100              # Satır uzunluğu 100 karakteri aşarsa satır kırılır
+
+# 🔍 Erişim Belirleyiciler ve Hizalama
+AccessModifierOffset: -4      # Erişim belirleyicilerini (public, private vb.) daha az girintile
+AlignAfterOpenBracket: AlwaysBreak  # Açılış parantezinden sonra satır kırılmasını zorunlu kıl
+AlignEscapedNewlines: Left    # Kaçış karakterli yeni satırları sola hizala
+
+# 📌 Kod Bloğu Biçimlendirmesi
+BreakBeforeBraces: Attach     # Açılış süslü parantezleri aynı satıra ekle (örneğin, `if () {`)
+AllowShortBlocksOnASingleLine: Empty  # Boş blokları tek satırda tut
+AllowShortFunctionsOnASingleLine: Inline  # Kısa fonksiyonları tek satırda tut
+
+# 🔄 Case ve Switch Biçimlendirmesi
+IndentCaseLabels: true        # Switch yapılarında case etiketlerini girintile
+MaxEmptyLinesToKeep: 5        # Maximum boş bırakılabilen satır sayısı
+# 💬 Yorum Biçimlendirmesi
+SpacesBeforeTrailingComments: 1  # Satır içi yorumlardan önce bir boşluk bırak
+
