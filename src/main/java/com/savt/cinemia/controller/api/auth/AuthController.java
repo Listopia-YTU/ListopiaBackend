@@ -1,7 +1,7 @@
 package com.savt.cinemia.controller.api.auth;
 
 import com.savt.cinemia.security.request.SignInRequestBodyPB;
-import com.savt.cinemia.security.request.SignupRequestBodyPB;
+import com.savt.cinemia.security.request.SignUpRequestBodyPB;
 import com.savt.cinemia.security.response.MessageResponse;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthController {
 
     @PostMapping("/signup")
-    public ResponseEntity<?> signUp(@Valid @RequestBody SignupRequestBodyPB signUpRequest) {
+    public ResponseEntity<?> signUp(@Valid @RequestBody SignUpRequestBodyPB signUpRequest) {
         return ResponseEntity.ok(new MessageResponse(""));
     }
 
