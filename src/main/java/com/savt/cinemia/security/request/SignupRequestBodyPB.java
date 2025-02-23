@@ -7,7 +7,7 @@ import lombok.Data;
 import java.util.Set;
 
 @Data
-public class SignupRequest {
+public class SignupRequestBodyPB {
     @NotBlank
     @Email
     private String email;
