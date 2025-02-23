@@ -1,4 +1,0 @@
-postman
-
-
-https://app.getpostman.com/join-team?invite_code=e424254456cf5b9e7d818f91f41e07976c75c1bc2e3ce2dfee0df4a86594abc1&target_code=3f086412e94f4c1cdeb59cd14101d01f
