@@ -1,13 +1,15 @@
 package com.savt.cinemia.security;
 
 import com.savt.cinemia.middleware.AuthMiddleware;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.web.filter.OncePerRequestFilter;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 
 @Configuration
@@ -15,17 +17,19 @@ import org.springframework.web.filter.OncePerRequestFilter;
 public class WebSecurityConfig {
     private final AuthMiddleware authMiddleware;
 
-    public WebSecurityConfig(AuthMiddleware authMiddleware) {
-        this.authMiddleware = authMiddleware;
+    public WebSecurityConfig() {
+        this.authMiddleware = new AuthMiddleware();
     }
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        http.addFilterBefore(authMiddleware, UsernamePasswordAuthenticationFilter.class);
+
         http.csrf(csrf -> csrf.disable())
-            .authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
             .sessionManagement(
                 session -> session.sessionCreationPolicy(SessionCreationPolicy.ALWAYS))
-            .addFilterBefore(authMiddleware, OncePerRequestFilter.class);
+            .securityMatcher("/**")
+            .authorizeHttpRequests(reg -> reg.requestMatchers("/**").permitAll());
 
         return http.build();
     }
