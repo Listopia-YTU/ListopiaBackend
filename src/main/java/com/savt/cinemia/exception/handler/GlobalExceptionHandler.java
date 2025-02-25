@@ -36,15 +36,17 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(apiResponse, HttpStatus.NOT_FOUND);
     }
 
+    @ExceptionHandler(ResourceAlreadyExistException.class)
+    public ResponseEntity<APIResponse> myResourceAlreadyExistException(ResourceAlreadyExistException e){
+        APIResponse apiResponse = new APIResponse(e.getMessage(), false);
+        return new ResponseEntity<>(apiResponse, HttpStatus.CONFLICT);
+    }
+
     @ExceptionHandler(APIException.class)
     public ResponseEntity<APIResponse> myAPIException(APIException e){
         APIResponse apiResponse = new APIResponse(e.getMessage(), false);
         return new ResponseEntity<>(apiResponse, HttpStatus.BAD_REQUEST);
     }
 
-    @ExceptionHandler(ResourceAlreadyExistException.class)
-    public ResponseEntity<APIResponse> myResourceAlreadyExistException(ResourceAlreadyExistException e){
-        APIResponse apiResponse = new APIResponse(e.getMessage(), false);
-        return new ResponseEntity<>(apiResponse, HttpStatus.CONFLICT);
-    }
+
 }
