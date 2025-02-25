@@ -10,7 +10,7 @@ import java.util.Collection;
 @Getter
 @Builder
 public class UserPrinciple implements UserDetails {
-    private final Long userId;
+    private final String userId;
     private final String email;
     private final Collection<? extends GrantedAuthority> authorities;
 
