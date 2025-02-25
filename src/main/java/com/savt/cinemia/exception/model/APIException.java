@@ -1,4 +1,4 @@
-package com.savt.cinemia.exception;
+package com.savt.cinemia.exception.model;
 
 import java.io.Serial;
 

@@ -1,4 +1,4 @@
-package com.savt.cinemia.exception;
+package com.savt.cinemia.exception.model;
 
 public class ResourceNotFoundException extends RuntimeException{
     private String resourceName;

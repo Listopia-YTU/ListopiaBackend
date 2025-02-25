@@ -1,5 +1,7 @@
-package com.savt.cinemia.exception;
+package com.savt.cinemia.exception.handler;
 
+import com.savt.cinemia.exception.model.APIException;
+import com.savt.cinemia.exception.model.ResourceNotFoundException;
 import com.savt.cinemia.payload.APIResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
