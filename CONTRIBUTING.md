@@ -12,13 +12,8 @@ Tüm geliştiriciler aşağıdaki branch kurallarına uymalıdır:
     - `relase`: Yayınlama branch'ı, sunucuya gidip çalışacak olan sürüm için.
 
 - **Özelleştirilmiş branch'ler:**
-    - Yeni bir geliştirme yaparken `dev/{isim}` formatını kullanın.
-    - Örnek: `dev/ahmet`, `dev/ayse`
-
-- **Özellik geliştirme ve hata düzeltme branch'leri:**
-    - `feature/{özellik-adı}` → Yeni bir özellik eklerken
-    - `bugfix/{hata-adı}` → Hata düzeltmeleri için
-    - `hotfix/{acil-düzeltme-adı}` → Acil düzeltmeler için (doğrudan `main` veya `develop`'a merge edilir)
+    - Yeni bir geliştirme yaparken `{isim}/{özellik}` formatını kullanın.
+    - Örnek: `ahmet/database`, `ayse/auth`
 
 ## ✍️ Kod Stili ve Açıklamalar
 
