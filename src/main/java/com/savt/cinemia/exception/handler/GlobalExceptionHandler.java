@@ -1,6 +1,7 @@
 package com.savt.cinemia.exception.handler;
 
 import com.savt.cinemia.exception.model.APIException;
+import com.savt.cinemia.exception.model.ResourceAlreadyExistException;
 import com.savt.cinemia.exception.model.ResourceNotFoundException;
 import com.savt.cinemia.payload.APIResponse;
 import org.springframework.http.HttpStatus;
@@ -16,8 +17,6 @@ import java.util.Map;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    // Eger bir methoda yanlis parametre yollarsak Spring MethodArgumentNotValidException yollayacaktir
-    // Bu hataya karsilik olarak mesaji ve 400 kodlu BAD_REQUEST statusunu gonderiyoruz
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, String>> myMethodArgumentNotValidException(MethodArgumentNotValidException e){
 
@@ -41,5 +40,11 @@ public class GlobalExceptionHandler {
     public ResponseEntity<APIResponse> myAPIException(APIException e){
         APIResponse apiResponse = new APIResponse(e.getMessage(), false);
         return new ResponseEntity<>(apiResponse, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(ResourceAlreadyExistException.class)
+    public ResponseEntity<APIResponse> myResourceAlreadyExistException(ResourceAlreadyExistException e){
+        APIResponse apiResponse = new APIResponse(e.getMessage(), false);
+        return new ResponseEntity<>(apiResponse, HttpStatus.CONFLICT);
     }
 }
