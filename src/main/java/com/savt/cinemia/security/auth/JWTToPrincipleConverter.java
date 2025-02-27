@@ -8,7 +8,7 @@ public class JWTToPrincipleConverter {
 
     public UserPrinciple convert(DecodedJWT jwt) {
         return UserPrinciple.builder()
-                .userId(Long.valueOf(jwt.getSubject()))
+                .userId(jwt.getSubject())
                 .email(jwt.getClaim("email").asString())
                 .build();
     }
