@@ -1,8 +1,8 @@
 package com.savt.cinemia.exception.handler;
 
-import com.savt.cinemia.exception.model.APIException;
-import com.savt.cinemia.exception.model.ResourceAlreadyExistException;
-import com.savt.cinemia.exception.model.ResourceNotFoundException;
+import com.savt.cinemia.exception.APIException;
+import com.savt.cinemia.exception.ResourceAlreadyExistException;
+import com.savt.cinemia.exception.ResourceNotFoundException;
 import com.savt.cinemia.payload.APIResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

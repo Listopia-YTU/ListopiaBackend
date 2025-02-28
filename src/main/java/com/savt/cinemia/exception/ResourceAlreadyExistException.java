@@ -1,4 +1,4 @@
-package com.savt.cinemia.exception.model;
+package com.savt.cinemia.exception;
 
 public class ResourceAlreadyExistException extends RuntimeException{
     private String resourceName;
