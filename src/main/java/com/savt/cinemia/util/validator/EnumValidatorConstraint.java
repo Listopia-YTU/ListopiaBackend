@@ -1,4 +1,4 @@
-package com.savt.cinemia.config.validator;
+package com.savt.cinemia.util.validator;
 
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
