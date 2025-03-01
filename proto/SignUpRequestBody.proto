@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package com.savt.cinemia.proto;
+package com.savt.listopia.proto;
 
 message SignUpRequestBody {
   string first_name = 1;

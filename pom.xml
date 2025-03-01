@@ -9,10 +9,10 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.savt</groupId>
-	<artifactId>cinemia</artifactId>
+	<artifactId>listopia</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>Cinemia</name>
-	<description>Cinemia project</description>
+	<name>Listopia</name>
+	<description>Listopia project</description>
 	<url/>
 	<licenses>
 		<license/>
