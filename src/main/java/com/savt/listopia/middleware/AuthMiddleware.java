@@ -24,9 +24,10 @@ public class AuthMiddleware extends OncePerRequestFilter {
     protected void doFilterInternal(
         HttpServletRequest request, HttpServletResponse response, FilterChain chain)
         throws ServletException, IOException {
+
         // Gelen Request içinden auth token'i al ve parse et
         String token = getTokenFromRequest(request);
-        LOGGER.warn("token: " + token);
+
         if (token != null) {
             // Eğer session yoksa kullanıcı rastgele string girmiş olabilir SessionID kısmına
             // veya session'un süresi dolmuştur.
@@ -53,6 +54,9 @@ public class AuthMiddleware extends OncePerRequestFilter {
     }
 
     String getTokenFromRequest(HttpServletRequest request) {
+        if (request.getCookies() == null)
+            return null;
+
         for (Cookie cookie : request.getCookies()) {
             if (cookie.getName().equals("_SESSIONID")) {
                 return cookie.getValue();
