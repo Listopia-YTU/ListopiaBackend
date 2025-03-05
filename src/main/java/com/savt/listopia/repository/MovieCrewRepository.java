@@ -1,10 +1,15 @@
 package com.savt.listopia.repository;
 
+import com.savt.listopia.model.movie.MovieCast;
 import com.savt.listopia.model.movie.MovieCrew;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface MovieCrewRepository extends JpaRepository<MovieCrew, String> {
-    MovieCrew getMovieCrewByCrewId(String creditId);
+public interface MovieCrewRepository extends JpaRepository<MovieCrew, Integer> {
+    MovieCrew getMovieCrewByCrewId(Integer creditId);
+
+    Page<MovieCrew> findAllByMovieMovieId(Integer movieId, Pageable pageDetails);
 }

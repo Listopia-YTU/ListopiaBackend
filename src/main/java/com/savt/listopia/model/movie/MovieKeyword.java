@@ -1,5 +1,6 @@
 package com.savt.listopia.model.movie;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -18,6 +19,7 @@ public class MovieKeyword {
     private String name;
 
     @ManyToOne
+    @JsonBackReference
     @JoinColumn(name = "movie_id")
     private Movie movie;
 }

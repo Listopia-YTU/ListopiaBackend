@@ -9,5 +9,8 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface ImageRepository extends JpaRepository<MovieImage, Long> {
     @Query("SELECT i.filePath FROM MovieImage i JOIN i.movie m WHERE m.movieId = :movieId")
-    String findMovieImageByMovieId(Long movieId, Limit limit);
+    String findMovieImageByMovieId(Integer movieId, Limit limit);
+
+    @Query("SELECT i.filePath FROM MovieImage i WHERE i.type = :type AND i.movie.movieId = :movieId")
+    String findMovieImageByMovieIdAndType(Integer movieId, Limit of, int type);
 }

@@ -29,6 +29,7 @@ import java.net.URL;
 import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
 import java.nio.channels.ReadableByteChannel;
+import java.util.ArrayList;
 import java.util.List;
 
 @Configuration
@@ -36,6 +37,7 @@ public class PersonFetcher {
     @Value("${tmdb.apiKey}")
     private String tmdbKey;
 
+    //    @Bean
     public CommandLineRunner initPersons(PersonRepository personRepository, MovieCastRepository movieCastRepository, MovieCrewRepository movieCrewRepository) {
         return args -> {
             ModelMapper modelMapper = new ModelMapper();
@@ -43,14 +45,9 @@ public class PersonFetcher {
             TmdbPeople people = tmdbApi.getPeople();
             PersonDb personDb;
 
-            modelMapper.typeMap(PersonDb.class, Person.class).addMappings(mapper -> {
-                mapper.skip(Person::setMovieCrew);
-                mapper.skip(Person::setMovieCast);
-            });
-
             int i;
 
-            for (i = 1; i < 10; i++) {
+            for (i = 1; i < 100; i++) {
                 try {
                     personDb = people.getDetails(i, "en", PersonAppendToResponse.TRANSLATIONS,
                             PersonAppendToResponse.IMAGES, PersonAppendToResponse.MOVIE_CREDITS);
@@ -60,21 +57,19 @@ public class PersonFetcher {
 
                 Person person = modelMapper.map(personDb, Person.class);
 
-                List<Translation> translations = personDb.getTranslations().getTranslations();
-
-                List<PersonTranslation> personTranslations = translations.stream()
-                        .map(translation -> modelMapper.map(translation, PersonTranslation.class))
+                List<Translation> translations = personDb.getTranslations().getTranslations()
+                        .stream().filter(t -> t.getIso6391().equals("tr"))
                         .toList();
 
+                List<PersonTranslation> personTranslations = new ArrayList<>();
 
-                int translationIndex = 0;
 
                 for (info.movito.themoviedbapi.model.people.Translation translation : translations) {
                     info.movito.themoviedbapi.model.people.Data data = translation.getData();
-                    PersonTranslation personTranslation = personTranslations.get(translationIndex);
+                    PersonTranslation personTranslation = new PersonTranslation();
                     personTranslation.setBiography(translation.getData().getBiography());
                     personTranslation.setLanguage(translation.getIso6391());
-                    translationIndex++;
+                    personTranslations.add(personTranslation);
                 }
 
                 personTranslations.forEach(t -> t.setPerson(person));
@@ -96,10 +91,10 @@ public class PersonFetcher {
                 List<info.movito.themoviedbapi.model.people.credits.MovieCast> movieCastsOfPerson =
                         personDb.getMovieCredits().getCast();
 
-                List<MovieCast> movieCasts = person.getMovieCast();
+                List<MovieCast> movieCasts = new ArrayList<>();
 
                 for (info.movito.themoviedbapi.model.people.credits.MovieCast mc : movieCastsOfPerson) {
-                    MovieCast movieCast = movieCastRepository.getMovieCastByCastId(mc.getCreditId());
+                    MovieCast movieCast = movieCastRepository.getMovieCastByCastId(mc.getId());
 
                     if (movieCast != null) {
                         movieCast.setPerson(person);
@@ -111,10 +106,10 @@ public class PersonFetcher {
                         personDb.getMovieCredits().getCrew();
 
 
-                List<MovieCrew> movieCrews = person.getMovieCrew();
+                List<MovieCrew> movieCrews = new ArrayList<>();
 
                 for (info.movito.themoviedbapi.model.people.credits.MovieCrew mc : movieCrewsOfPerson) {
-                    MovieCrew movieCrew = movieCrewRepository.getMovieCrewByCrewId(mc.getCreditId());
+                    MovieCrew movieCrew = movieCrewRepository.getMovieCrewByCrewId(mc.getId());
 
                     if (movieCrew != null) {
                         movieCrew.setPerson(person);
@@ -122,7 +117,6 @@ public class PersonFetcher {
                     }
                 }
 
-                person.setMovieCast(movieCasts);
                 personRepository.save(person);
                 movieCastRepository.saveAll(movieCasts);
                 movieCrewRepository.saveAll(movieCrews);
