@@ -4,8 +4,10 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 @Data
-public class SignInRequestBodyPB {
-    @NotBlank private String email;
+public class SignInRequestBody {
+    @NotBlank
+    private String email;
 
-    @NotBlank private String password;
+    @NotBlank
+    private String password;
 }

@@ -1,53 +1,90 @@
 package com.savt.listopia.controller.api.auth;
 
-import com.savt.listopia.middleware.AuthMiddleware;
-import com.savt.listopia.security.auth.JWTIssuer;
-import com.savt.listopia.security.auth.SessionManager;
-import com.savt.listopia.security.request.SignInRequestBodyPB;
-import com.savt.listopia.security.request.SignUpRequestBodyPB;
+import com.savt.listopia.model.user.Session;
+import com.savt.listopia.model.user.User;
+import com.savt.listopia.payload.response.user.UserMe;
+import com.savt.listopia.security.request.SignInRequestBody;
+import com.savt.listopia.security.request.SignUpRequestBody;
+import com.savt.listopia.service.SessionService;
+import com.savt.listopia.service.UserService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/v1/auth")
 public class AuthController {
-    private final JWTIssuer jwtService;
-    private final SessionManager sessionManager;
-    private static final Logger LOGGER = LoggerFactory.getLogger(AuthMiddleware.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(AuthController.class);
+    @Autowired
+    UserService userService;
+    @Autowired
+    SessionService sessionService;
 
-    public AuthController(JWTIssuer jwtService, SessionManager sessionManager) {
-        this.jwtService = jwtService;
-        this.sessionManager = sessionManager;
-    }
     @PostMapping("/signup")
-    public ResponseEntity<?> signUp(
-        @Valid @RequestBody SignUpRequestBodyPB signUpRequest, HttpSession session) {
-        return ResponseEntity.ok().build();
+    public ResponseEntity<?> signUp(@Valid @RequestBody SignUpRequestBody signUpRequest, HttpServletResponse response) {
+        User user = userService.registerUser(
+            signUpRequest.getFirstName(),
+            signUpRequest.getLastName(),
+            signUpRequest.getEmail(),
+            signUpRequest.getUsername(),
+            signUpRequest.getPassword());
+
+        if (user != null) {
+            Session userSession = sessionService.createSession(user);
+            Cookie sessionCookie = sessionService.createCookie(userSession);
+            response.addCookie(sessionCookie);
+            return ResponseEntity.ok().build();
+        } else
+            return ResponseEntity.status(401).build(); // TODO: better response
     }
 
     @PostMapping("/signin")
-    public ResponseEntity<?> signIn(
-        @RequestBody SignInRequestBodyPB signInRequest, HttpServletResponse response) {
-        Cookie token = sessionManager.createCookieForUserId("test1");
-        response.addCookie(token);
-        return ResponseEntity.ok().build();
+    public ResponseEntity<?> signIn(@Valid @RequestBody SignInRequestBody signInRequest, HttpServletResponse response) {
+        User user = userService.getUserByEmailPassword(
+            signInRequest.getEmail(),
+            signInRequest.getPassword());
+
+        if (user != null) {
+            Session userSession = sessionService.createSession(user);
+            Cookie sessionCookie = sessionService.createCookie(userSession);
+            response.addCookie(sessionCookie);
+            return ResponseEntity.ok().build();
+        } else {
+            return ResponseEntity.status(403).build();
+        }
     }
 
     @PostMapping("/signout")
-    public ResponseEntity<?> signOut(HttpSession session) {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        LOGGER.warn("auth:" + auth);
+    public ResponseEntity<?> signOut(HttpServletResponse response) {
+        Session session1 = sessionService.getCurrentSession();
+        sessionService.deleteSession(session1);
+
+        Cookie deleteCookie = new Cookie("_SESSION", "");
+        deleteCookie.setMaxAge(0);
+        response.addCookie(deleteCookie);
+
         return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<?> me() {
+        User user = userService.getCurrentUser();
+        if (user == null)
+            return ResponseEntity.status(403).build();
+
+        UserMe res = UserMe.builder()
+                .firstName(user.getFirstName())
+                .lastName(user.getLastName())
+                .email(user.getEmail())
+                .username(user.getUsername())
+                .uuid(user.getUuid().toString())
+                .build();
+
+        return ResponseEntity.ok(res);
     }
 }
