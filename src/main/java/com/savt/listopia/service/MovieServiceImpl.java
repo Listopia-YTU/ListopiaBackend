@@ -55,22 +55,22 @@ public class MovieServiceImpl implements MovieService {
         List<Movie> movies = pageMovies.getContent();
 
         if (!(language.equals("en"))) {
-            for (Movie movie: movies){
+            for (Movie movie : movies) {
                 MovieTranslation movieTranslation = movieTranslationRepository
                         .findByMovieMovieIdAndLanguage(movie.getMovieId(), language);
 
 
-                if (movieTranslation == null){
+                if (movieTranslation == null) {
                     continue;
                 }
 
                 String title = movieTranslation.getTitle();
 
-                if (title == null){
+                if (title == null) {
                     continue;
                 }
 
-                if (title.isEmpty() || title.isBlank()){
+                if (title.isEmpty() || title.isBlank()) {
                     continue;
                 }
 
@@ -102,31 +102,31 @@ public class MovieServiceImpl implements MovieService {
         Movie movie = movieRepository.findById(movieId)
                 .orElseThrow(() -> new ResourceNotFoundException("Movie", "movieId", movieId));
 
-        MovieTranslation movieTranslation = movieTranslationRepository
-                .findByMovieMovieIdAndLanguage(movieId, language);
-
         if (!(language.equals("en"))) {
-            if (movieTranslation != null){
+            MovieTranslation movieTranslation = movieTranslationRepository
+                    .findByMovieMovieIdAndLanguage(movieId, language);
+
+            if (movieTranslation != null) {
                 String title = movieTranslation.getTitle();
 
-                if (title != null){
-                    if (!(title.isEmpty() || title.isBlank())){
+                if (title != null) {
+                    if (!(title.isEmpty() || title.isBlank())) {
                         movie.setTitle(title);
                     }
                 }
 
                 String overview = movieTranslation.getOverview();
 
-                if (overview != null){
-                    if (!(overview.isEmpty() || overview.isBlank())){
+                if (overview != null) {
+                    if (!(overview.isEmpty() || overview.isBlank())) {
                         movie.setOverview(overview);
                     }
                 }
 
                 String tagline = movieTranslation.getTagline();
 
-                if (tagline != null){
-                    if (!(tagline.isEmpty() || tagline.isBlank())){
+                if (tagline != null) {
+                    if (!(tagline.isEmpty() || tagline.isBlank())) {
                         movie.setTagline(tagline);
                     }
                 }
@@ -137,19 +137,27 @@ public class MovieServiceImpl implements MovieService {
 
         List<Genre> genres = movieDTO.getGenres();
 
-        for (Genre genre: genres){
-            GenreTranslation genreTranslation = genreTranslationRepository.findGenreTranslationByGenreAndLanguage(genre, language);
-            if (genreTranslation != null){
-                String translatedGenreName  = genreTranslation.getName();
+        if (!(language.equals("en"))) {
+            for (Genre genre : genres) {
+                GenreTranslation genreTranslation = genreTranslationRepository.findGenreTranslationByGenreAndLanguage(genre, language);
 
-                if (translatedGenreName != null){
-                    if (!(translatedGenreName.isEmpty() || translatedGenreName.isBlank())){
-                        genre.setName(translatedGenreName);
-                    }
+                if (genreTranslation == null) {
+                    continue;
                 }
+
+                String translatedGenreName = genreTranslation.getName();
+
+                if (translatedGenreName == null) {
+                    continue;
+                }
+
+                if (translatedGenreName.isEmpty() || translatedGenreName.isBlank()) {
+                    continue;
+                }
+
+                genre.setName(translatedGenreName);
             }
         }
-
 
         movieDTO.setBackdrop(imageRepository.findMovieImageByMovieIdAndType(movieId, Limit.of(1), 1));
         movieDTO.setPoster(imageRepository.findMovieImageByMovieIdAndType(movieId, Limit.of(1), 2));
