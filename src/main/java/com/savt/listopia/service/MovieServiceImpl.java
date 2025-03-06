@@ -135,9 +135,9 @@ public class MovieServiceImpl implements MovieService {
 
         MovieDTO movieDTO = modelMapper.map(movie, MovieDTO.class);
 
-        List<Genre> genres = movieDTO.getGenres();
-
         if (!(language.equals("en"))) {
+            List<Genre> genres = movieDTO.getGenres();
+
             for (Genre genre : genres) {
                 GenreTranslation genreTranslation = genreTranslationRepository.findGenreTranslationByGenreAndLanguage(genre, language);
 
