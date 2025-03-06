@@ -34,6 +34,7 @@ public class MovieServiceImpl implements MovieService {
 
     @Autowired
     private MovieTranslationRepository movieTranslationRepository;
+
     @Autowired
     private GenreTranslationRepository genreTranslationRepository;
 
@@ -58,7 +59,6 @@ public class MovieServiceImpl implements MovieService {
             for (Movie movie : movies) {
                 MovieTranslation movieTranslation = movieTranslationRepository
                         .findByMovieMovieIdAndLanguage(movie.getMovieId(), language);
-
 
                 if (movieTranslation == null) {
                     continue;
