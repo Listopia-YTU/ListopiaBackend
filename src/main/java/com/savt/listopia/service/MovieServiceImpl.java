@@ -54,26 +54,28 @@ public class MovieServiceImpl implements MovieService {
 
         List<Movie> movies = pageMovies.getContent();
 
-        for (Movie movie: movies){
-            MovieTranslation movieTranslation = movieTranslationRepository
-                    .findByMovieMovieIdAndLanguage(movie.getMovieId(), language);
+        if (!(language.equals("en"))) {
+            for (Movie movie: movies){
+                MovieTranslation movieTranslation = movieTranslationRepository
+                        .findByMovieMovieIdAndLanguage(movie.getMovieId(), language);
 
 
-            if (movieTranslation == null){
-                continue;
+                if (movieTranslation == null){
+                    continue;
+                }
+
+                String title = movieTranslation.getTitle();
+
+                if (title == null){
+                    continue;
+                }
+
+                if (title.isEmpty() || title.isBlank()){
+                    continue;
+                }
+
+                movie.setTitle(movieTranslation.getTitle());
             }
-
-            String title = movieTranslation.getTitle();
-
-            if (title == null){
-                continue;
-            }
-
-            if (title.isEmpty() || title.isBlank()){
-                continue;
-            }
-
-            movie.setTitle(movieTranslation.getTitle());
         }
 
         List<MovieFrontDTO> movieFrontDTOS = movies.stream()
@@ -103,28 +105,30 @@ public class MovieServiceImpl implements MovieService {
         MovieTranslation movieTranslation = movieTranslationRepository
                 .findByMovieMovieIdAndLanguage(movieId, language);
 
-        if (movieTranslation != null){
-            String title = movieTranslation.getTitle();
+        if (!(language.equals("en"))) {
+            if (movieTranslation != null){
+                String title = movieTranslation.getTitle();
 
-            if (title != null){
-                if (!(title.isEmpty() || title.isBlank())){
-                    movie.setTitle(title);
+                if (title != null){
+                    if (!(title.isEmpty() || title.isBlank())){
+                        movie.setTitle(title);
+                    }
                 }
-            }
 
-            String overview = movieTranslation.getOverview();
+                String overview = movieTranslation.getOverview();
 
-            if (overview != null){
-                if (!(overview.isEmpty() || overview.isBlank())){
-                    movie.setOverview(overview);
+                if (overview != null){
+                    if (!(overview.isEmpty() || overview.isBlank())){
+                        movie.setOverview(overview);
+                    }
                 }
-            }
 
-            String tagline = movieTranslation.getTagline();
+                String tagline = movieTranslation.getTagline();
 
-            if (tagline != null){
-                if (!(tagline.isEmpty() || tagline.isBlank())){
-                    movie.setTagline(tagline);
+                if (tagline != null){
+                    if (!(tagline.isEmpty() || tagline.isBlank())){
+                        movie.setTagline(tagline);
+                    }
                 }
             }
         }
