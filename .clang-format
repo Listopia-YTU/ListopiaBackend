@@ -7,7 +7,7 @@ Language: Java
 IndentWidth: 4                # 4 boşluk kullanarak girintileme
 TabWidth: 4                   # Tab boyutu 4 (UseTab kapalı olduğu için kullanılmaz)
 UseTab: Never                 # Tab yerine her zaman boşluk kullan
-ColumnLimit: 100              # Satır uzunluğu 100 karakteri aşarsa satır kırılır
+ColumnLimit: 0                # Satır uzunluğu 100 karakteri aşarsa satır kırılır
 
 # 🔍 Erişim Belirleyiciler ve Hizalama
 AccessModifierOffset: -4      # Erişim belirleyicilerini (public, private vb.) daha az girintile
