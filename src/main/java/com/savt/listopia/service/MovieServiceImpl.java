@@ -1,12 +1,18 @@
 package com.savt.listopia.service;
 
+import com.savt.listopia.exception.ResourceNotFoundException;
+import com.savt.listopia.model.core.Genre;
 import com.savt.listopia.model.movie.Movie;
+import com.savt.listopia.model.translation.GenreTranslation;
+import com.savt.listopia.model.translation.MovieTranslation;
 import com.savt.listopia.payload.dto.MovieDTO;
 import com.savt.listopia.payload.dto.MovieFrontDTO;
 import com.savt.listopia.payload.response.MovieFrontResponse;
-import com.savt.listopia.payload.response.MovieResponse;
+import com.savt.listopia.repository.GenreTranslationRepository;
 import com.savt.listopia.repository.ImageRepository;
 import com.savt.listopia.repository.MovieRepository;
+import com.savt.listopia.repository.MovieTranslationRepository;
+import info.movito.themoviedbapi.model.movies.MovieDb;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.*;
@@ -26,8 +32,14 @@ public class MovieServiceImpl implements MovieService {
     @Autowired
     private ImageRepository imageRepository;
 
+    @Autowired
+    private MovieTranslationRepository movieTranslationRepository;
+
+    @Autowired
+    private GenreTranslationRepository genreTranslationRepository;
+
     @Override
-    public MovieResponse getMovies(Integer pageNumber, Integer pageSize, String sortBy, String sortOrder, String genre) {
+    public MovieFrontResponse getFrontMovies(Integer pageNumber, Integer pageSize, String sortBy, String sortOrder, String genre, String language) {
         Sort sortByAndOrder = sortOrder.equalsIgnoreCase("asc")
                 ? Sort.by(sortBy).ascending()
                 : Sort.by(sortBy).descending();
@@ -43,36 +55,28 @@ public class MovieServiceImpl implements MovieService {
 
         List<Movie> movies = pageMovies.getContent();
 
-        List<MovieDTO> movieDTOS = movies.stream()
-                .map(product -> modelMapper.map(product, MovieDTO.class))
-                .toList();
+        if (!(language.equals("en"))) {
+            for (Movie movie : movies) {
+                MovieTranslation movieTranslation = movieTranslationRepository
+                        .findByMovieMovieIdAndLanguage(movie.getMovieId(), language);
 
-        MovieResponse movieResponse = new MovieResponse();
-        movieResponse.setContent(movieDTOS);
-        movieResponse.setPageNumber(pageMovies.getNumber());
-        movieResponse.setPageSize(pageMovies.getSize());
-        movieResponse.setTotalElements(pageMovies.getTotalElements());
-        movieResponse.setTotalPages(pageMovies.getTotalPages());
-        movieResponse.setLastPage(pageMovies.isLast());
-        return movieResponse;
-    }
+                if (movieTranslation == null) {
+                    continue;
+                }
 
-    @Override
-    public MovieFrontResponse getFrontMovies(Integer pageNumber, Integer pageSize, String sortBy, String sortOrder, String genre) {
-        Sort sortByAndOrder = sortOrder.equalsIgnoreCase("asc")
-                ? Sort.by(sortBy).ascending()
-                : Sort.by(sortBy).descending();
+                String title = movieTranslation.getTitle();
 
-        Pageable pageDetails = PageRequest.of(pageNumber, pageSize, sortByAndOrder);
-        Page<Movie> pageMovies;
+                if (title == null) {
+                    continue;
+                }
 
-        if (genre != null) {
-            pageMovies = movieRepository.findAllByGenreName(pageDetails, genre);
-        } else {
-            pageMovies = movieRepository.findAll(pageDetails);
+                if (title.isEmpty() || title.isBlank()) {
+                    continue;
+                }
+
+                movie.setTitle(movieTranslation.getTitle());
+            }
         }
-
-        List<Movie> movies = pageMovies.getContent();
 
         List<MovieFrontDTO> movieFrontDTOS = movies.stream()
                 .map(product -> modelMapper.map(product, MovieFrontDTO.class))
@@ -91,5 +95,73 @@ public class MovieServiceImpl implements MovieService {
         movieFrontResponse.setTotalPages(pageMovies.getTotalPages());
         movieFrontResponse.setLastPage(pageMovies.isLast());
         return movieFrontResponse;
+    }
+
+    @Override
+    public MovieDTO getMovie(Integer movieId, String language) {
+        Movie movie = movieRepository.findById(movieId)
+                .orElseThrow(() -> new ResourceNotFoundException("Movie", "movieId", movieId));
+
+        if (!(language.equals("en"))) {
+            MovieTranslation movieTranslation = movieTranslationRepository
+                    .findByMovieMovieIdAndLanguage(movieId, language);
+
+            if (movieTranslation != null) {
+                String title = movieTranslation.getTitle();
+
+                if (title != null) {
+                    if (!(title.isEmpty() || title.isBlank())) {
+                        movie.setTitle(title);
+                    }
+                }
+
+                String overview = movieTranslation.getOverview();
+
+                if (overview != null) {
+                    if (!(overview.isEmpty() || overview.isBlank())) {
+                        movie.setOverview(overview);
+                    }
+                }
+
+                String tagline = movieTranslation.getTagline();
+
+                if (tagline != null) {
+                    if (!(tagline.isEmpty() || tagline.isBlank())) {
+                        movie.setTagline(tagline);
+                    }
+                }
+            }
+        }
+
+        MovieDTO movieDTO = modelMapper.map(movie, MovieDTO.class);
+
+        if (!(language.equals("en"))) {
+            List<Genre> genres = movieDTO.getGenres();
+
+            for (Genre genre : genres) {
+                GenreTranslation genreTranslation = genreTranslationRepository.findGenreTranslationByGenreAndLanguage(genre, language);
+
+                if (genreTranslation == null) {
+                    continue;
+                }
+
+                String translatedGenreName = genreTranslation.getName();
+
+                if (translatedGenreName == null) {
+                    continue;
+                }
+
+                if (translatedGenreName.isEmpty() || translatedGenreName.isBlank()) {
+                    continue;
+                }
+
+                genre.setName(translatedGenreName);
+            }
+        }
+
+        movieDTO.setBackdrop(imageRepository.findMovieImageByMovieIdAndType(movieId, Limit.of(1), 1));
+        movieDTO.setPoster(imageRepository.findMovieImageByMovieIdAndType(movieId, Limit.of(1), 2));
+        movieDTO.setLogo(imageRepository.findMovieImageByMovieIdAndType(movieId, Limit.of(1), 3));
+        return movieDTO;
     }
 }

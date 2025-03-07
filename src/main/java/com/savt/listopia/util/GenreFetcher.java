@@ -3,6 +3,7 @@ package com.savt.listopia.util;
 import com.savt.listopia.model.movie.Movie;
 import com.savt.listopia.model.translation.GenreTranslation;
 import com.savt.listopia.repository.GenreRepository;
+import com.savt.listopia.repository.GenreTranslationRepository;
 import info.movito.themoviedbapi.TmdbApi;
 import info.movito.themoviedbapi.TmdbGenre;
 import info.movito.themoviedbapi.model.core.Genre;
@@ -10,6 +11,7 @@ import info.movito.themoviedbapi.model.movies.MovieDb;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import java.util.List;
@@ -17,9 +19,15 @@ import java.util.List;
 @Configuration
 public class GenreFetcher {
 
+    private final GenreTranslationRepository genreTranslationRepository;
     @Value("${tmdb.apiKey}")
     private String tmdbKey;
 
+    public GenreFetcher(GenreTranslationRepository genreTranslationRepository) {
+        this.genreTranslationRepository = genreTranslationRepository;
+    }
+
+    //    @Bean
     public CommandLineRunner initGenres(GenreRepository genreRepository) {
         return args -> {
             ModelMapper modelMapper = new ModelMapper();
@@ -36,23 +44,24 @@ public class GenreFetcher {
                     .map(g -> modelMapper.map(g, com.savt.listopia.model.core.Genre.class))
                     .toList();
 
-            String[] langs = {"en", "de", "it", "fr", "es", "ru", "cs", "pt", "pl", "hu", "nl", "lt", "tr", "he", "el", "zh", "da", "ro", "ko", "uk", "pt", "fi", "bg", "sk", "sv", "es", "ja", "ka", "lv", "hr", "ca", "th", "et"};
+            genreRepository.saveAll(genres);
 
-            for (int y = 0; y < 33; y++) {
+
+//            String[] langs = {"en", "de", "it", "fr", "es", "ru", "cs", "pt", "pl", "hu", "nl", "lt", "tr", "he", "el", "zh", "da", "ro", "ko", "uk", "pt", "fi", "bg", "sk", "sv", "es", "ja", "ka", "lv", "hr", "ca", "th", "et"};
+
+            String[] langs = {"tr"};
+            for (int y = 0; y < langs.length; y++) {
                 genresFromTmdb = tmdbGenre.getMovieList(langs[y]);
                 for (int j = 0; j < genres.size(); j++) {
                     com.savt.listopia.model.core.Genre genre = genres.get(j);
-                    List<GenreTranslation> genreTranslations = genre.getTranslations();
                     GenreTranslation genreTranslation = new GenreTranslation();
                     genreTranslation.setLanguage(langs[y]);
                     genreTranslation.setName(genresFromTmdb.get(j).getName());
                     genreTranslation.setGenre(genre);
-                    genreTranslations.add(genreTranslation);
-                    genre.setTranslations(genreTranslations);
+                    genreTranslationRepository.save(genreTranslation);
                 }
             }
 
-            genreRepository.saveAll(genres);
 
             System.out.println("SAVED GENRES");
         };

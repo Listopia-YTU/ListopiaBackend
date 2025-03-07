@@ -6,6 +6,8 @@ import com.savt.listopia.exception.ResourceNotFoundException;
 import com.savt.listopia.payload.APIResponse;
 import java.util.HashMap;
 import java.util.Map;
+
+import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -45,4 +47,11 @@ public class GlobalExceptionHandler {
         APIResponse apiResponse = new APIResponse(e.getMessage(), false);
         return new ResponseEntity<>(apiResponse, HttpStatus.BAD_REQUEST);
     }
+
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<APIResponse> myConstraintViolationException(ConstraintViolationException e) {
+        APIResponse apiResponse = new APIResponse(e.getMessage(), false);
+        return new ResponseEntity<>(apiResponse, HttpStatus.BAD_REQUEST);
+    }
+
 }

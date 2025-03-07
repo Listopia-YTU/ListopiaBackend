@@ -21,7 +21,7 @@ public class Person {
     @Id
     private String imdbId;
 
-    @Column(columnDefinition="TEXT", length = 512)
+    @Column(columnDefinition = "TEXT", length = 512)
     private String biography;
 
     private String name;
@@ -40,21 +40,9 @@ public class Person {
 
     private String profilePath;
 
-    @OneToMany(mappedBy = "person",  cascade = {CascadeType.MERGE, CascadeType.PERSIST}, orphanRemoval = true)
+    @OneToMany(mappedBy = "person", cascade = {CascadeType.MERGE, CascadeType.PERSIST}, orphanRemoval = true)
     private List<PersonTranslation> translations = new ArrayList<>();
 
     @OneToMany(mappedBy = "person", cascade = {CascadeType.MERGE, CascadeType.PERSIST}, orphanRemoval = true)
     private List<PersonImage> profiles = new ArrayList<>();
-
-    @OneToMany(mappedBy = "person", cascade = {CascadeType.MERGE, CascadeType.PERSIST}, orphanRemoval = true)
-//    @JoinTable(name = "person_casts",
-//            joinColumns = @JoinColumn(name = "imdb_id"),
-//            inverseJoinColumns = @JoinColumn(name = "cast_id"))
-    private List<MovieCast> movieCast = new ArrayList<>();
-
-    @OneToMany(mappedBy = "person", cascade = {CascadeType.MERGE, CascadeType.PERSIST}, orphanRemoval = true)
-//    @JoinTable(name = "person_crews",
-//            joinColumns = @JoinColumn(name = "imdb_id"),
-//            inverseJoinColumns = @JoinColumn(name = "crew_id"))
-    private List<MovieCrew> movieCrew = new ArrayList<>();
 }

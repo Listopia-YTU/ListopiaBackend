@@ -7,6 +7,8 @@ import com.savt.listopia.model.movie.MovieCast;
 import com.savt.listopia.model.movie.MovieCrew;
 import com.savt.listopia.model.movie.MovieKeyword;
 import com.savt.listopia.model.translation.MovieTranslation;
+import com.savt.listopia.repository.MovieCastRepository;
+import com.savt.listopia.repository.MovieCrewRepository;
 import com.savt.listopia.repository.MovieRepository;
 import info.movito.themoviedbapi.TmdbApi;
 import info.movito.themoviedbapi.TmdbMovies;
@@ -18,6 +20,7 @@ import info.movito.themoviedbapi.tools.appendtoresponse.MovieAppendToResponse;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import java.io.FileOutputStream;
@@ -26,6 +29,7 @@ import java.net.URL;
 import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
 import java.nio.channels.ReadableByteChannel;
+import java.util.ArrayList;
 import java.util.List;
 
 @Configuration
@@ -42,7 +46,8 @@ public class MovieFetcher {
     @Value("${logos.path}")
     private String logosPath;
 
-    public CommandLineRunner initMovies(MovieRepository movieRepository) {
+    //    @Bean
+    public CommandLineRunner initMovies(MovieRepository movieRepository, MovieCrewRepository movieCrewRepository, MovieCastRepository movieCastRepository) {
 
         return args -> {
             ModelMapper modelMapper = new ModelMapper();
@@ -60,7 +65,7 @@ public class MovieFetcher {
             MovieDb movieDb;
             int i;
 
-            for (i = 1; i < 10000; i++) {
+            for (i = 1; i < 100; i++) {
                 try {
                     movieDb = movies.getDetails(i, "en", MovieAppendToResponse.TRANSLATIONS
                             , MovieAppendToResponse.IMAGES, MovieAppendToResponse.CREDITS
@@ -82,31 +87,45 @@ public class MovieFetcher {
                 movie.setRatingAverage(0.0);
                 movie.setRatingCount(0);
 
-                List<Translation> translations = movieDb.getTranslations().getTranslations();
-
-                List<MovieTranslation> movieTranslations = translations.stream()
-                        .map(translation -> modelMapper.map(translation, MovieTranslation.class))
+                List<Translation> translations = movieDb.getTranslations().getTranslations()
+                        .stream().filter(t -> t.getIso6391().equals("tr"))
                         .toList();
 
-
-                int translationIndex = 0;
+                List<MovieTranslation> movieTranslations = new ArrayList<>();
 
                 for (Translation translation : translations) {
                     Data data = translation.getData();
-                    MovieTranslation movieTranslation = movieTranslations.get(translationIndex);
+                    MovieTranslation movieTranslation = new MovieTranslation();
+                    movieTranslation.setLanguage(translation.getIso6391());
                     movieTranslation.setTitle(data.getTitle());
                     movieTranslation.setOverview(data.getOverview());
                     movieTranslation.setTagline(data.getTagline());
-                    translationIndex++;
+                    movieTranslations.add(movieTranslation);
                 }
 
                 movieTranslations.forEach(t -> t.setMovie(movie));
                 movie.setTranslations(movieTranslations);
 
                 Images images = movieDb.getImages();
-                List<Artwork> backdropsArtwork = images.getBackdrops();
-                List<Artwork> logosArtwork = images.getLogos();
-                List<Artwork> postersArtwork = images.getPosters();
+
+//                List<Artwork> backdropsArtwork = images.getBackdrops();
+//                List<Artwork> logosArtwork = images.getLogos();
+//                List<Artwork> postersArtwork = images.getPosters();
+
+                List<Artwork> backdropsArtwork = new ArrayList<>();
+                if (!(images.getBackdrops().isEmpty())) {
+                    backdropsArtwork.add(images.getBackdrops().getFirst());
+
+                }
+                List<Artwork> postersArtwork = new ArrayList<>();
+                if (!(images.getPosters().isEmpty())) {
+                    postersArtwork.add(images.getPosters().getFirst());
+
+                }
+                List<Artwork> logosArtwork = new ArrayList<>();
+                if (!(images.getLogos().isEmpty())) {
+                    logosArtwork.add(images.getLogos().getFirst());
+                }
 
                 List<MovieImage> backdrops = backdropsArtwork.stream()
                         .map(a -> modelMapper.map(a, MovieImage.class))
@@ -152,9 +171,6 @@ public class MovieFetcher {
                 movieCrew.forEach(c -> c.setMovie(movie));
 
 
-                movie.setMovieCast(movieCast);
-                movie.setMovieCrew(movieCrew);
-
                 ExternalIds externalIds = movieDb.getExternalIds();
                 movie.setFacebookId(externalIds.getFacebookId());
                 movie.setInstagramId(externalIds.getInstagramId());
@@ -177,12 +193,15 @@ public class MovieFetcher {
 
 
                 movieRepository.save(movie);
+                movieCrewRepository.saveAll(movieCrew);
+                movieCastRepository.saveAll(movieCast);
 
 //                downloadMovieCastImages(movieCast);
 //                downloadBackdrops(backdrops);
 //                downloadPosters(posters);
 //                downloadLogos(logos);
             }
+            System.out.println("SAVED ALL MOVIES");
         };
     }
 

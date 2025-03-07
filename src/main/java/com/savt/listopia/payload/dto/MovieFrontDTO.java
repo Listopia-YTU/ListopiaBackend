@@ -8,9 +8,15 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class MovieFrontDTO {
-    private Long movieId;
+    private Integer movieId;
 
     private String title;
 
     private String poster;
+
+    private Integer watchCount;
+
+    private Integer likeCount;
+
+    private Double ratingAverage;
 }

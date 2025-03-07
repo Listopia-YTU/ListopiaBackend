@@ -1,6 +1,7 @@
 package com.savt.listopia.model.movie;
 
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.savt.listopia.model.core.Genre;
 import com.savt.listopia.model.core.image.MovieImage;
 import com.savt.listopia.model.translation.MovieTranslation;
@@ -26,10 +27,10 @@ public class Movie {
 
     private String title;
 
-    @Column(columnDefinition="TEXT", length = 2048)
+    @Column(columnDefinition = "TEXT", length = 2048)
     private String overview;
 
-    @Column(columnDefinition="TEXT", length = 2048)
+    @Column(columnDefinition = "TEXT", length = 2048)
     private String tagline;
 
     private Double popularity;
@@ -65,20 +66,18 @@ public class Movie {
     private String twitterId;
 
     @OneToMany(mappedBy = "movie", cascade = {CascadeType.MERGE, CascadeType.PERSIST}, orphanRemoval = true)
+    @JsonManagedReference
     private List<MovieImage> backdrops;
 
+    @JsonManagedReference
     @OneToMany(mappedBy = "movie", cascade = {CascadeType.MERGE, CascadeType.PERSIST}, orphanRemoval = true)
     private List<MovieImage> logos;
 
+    @JsonManagedReference
     @OneToMany(mappedBy = "movie", cascade = {CascadeType.MERGE, CascadeType.PERSIST}, orphanRemoval = true)
     private List<MovieImage> posters;
 
-    @OneToMany(mappedBy = "movie", cascade = {CascadeType.MERGE, CascadeType.PERSIST}, orphanRemoval = true)
-    private List<MovieCast> movieCast;
-
-    @OneToMany(mappedBy = "movie", cascade = {CascadeType.MERGE, CascadeType.PERSIST}, orphanRemoval = true)
-    private List<MovieCrew> movieCrew;
-
+    @JsonManagedReference
     @OneToMany(mappedBy = "movie", cascade = {CascadeType.PERSIST, CascadeType.MERGE}, orphanRemoval = true)
     private List<MovieKeyword> keywords;
 
@@ -88,7 +87,7 @@ public class Movie {
             inverseJoinColumns = @JoinColumn(name = "genre_id"))
     private List<Genre> genres;
 
-    @OneToMany(mappedBy = "movie",  cascade = {CascadeType.MERGE, CascadeType.PERSIST}, orphanRemoval = true)
+    @OneToMany(mappedBy = "movie", cascade = {CascadeType.MERGE, CascadeType.PERSIST}, orphanRemoval = true)
     private List<MovieTranslation> translations;
 
 }

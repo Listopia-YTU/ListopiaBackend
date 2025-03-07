@@ -1,5 +1,6 @@
 package com.savt.listopia.model.movie;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.savt.listopia.model.people.Person;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -13,11 +14,8 @@ import lombok.NoArgsConstructor;
 @Table(name = "movie_crews")
 public class MovieCrew {
     @Id
-    private String crewId;
-
-//    private Gender gender;
-
-    private String knownForDepartment;
+    @JoinColumn(name = "crew_id")
+    private Integer crewId;
 
     private String originalName;
 
@@ -30,10 +28,10 @@ public class MovieCrew {
     private String job;
 
     @ManyToOne
-    @JoinColumn(name = "movie_id")
-    private Movie movie;
-
-    @ManyToOne
     @JoinColumn(name = "person_id")
     private Person person;
+
+    @ManyToOne
+    @JoinColumn(name = "movie_id")
+    private Movie movie;
 }
