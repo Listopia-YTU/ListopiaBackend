@@ -89,7 +89,7 @@ public class MovieServiceImpl implements MovieService {
                     continue;
                 }
 
-                movie.setTitle(movieTranslation.getTitle());
+                movie.setTitle(title);
             }
         }
 
@@ -149,7 +149,7 @@ public class MovieServiceImpl implements MovieService {
                     continue;
                 }
 
-                movie.setTitle(movieTranslation.getTitle());
+                movie.setTitle(title);
             }
         }
 
