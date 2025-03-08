@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "movie_translations")
-public class MovieTranslation{
+public class MovieTranslation {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @JoinColumn(name = "translation_id")
@@ -24,13 +24,12 @@ public class MovieTranslation{
     @JoinColumn(name = "iso_code")
     private String language;
 
-    @Column(columnDefinition="TEXT", length = 512)
+    @Column(columnDefinition = "TEXT", length = 512)
     private String title;
 
-    @Column(columnDefinition="TEXT", length = 2048)
+    @Column(columnDefinition = "TEXT", length = 2048)
     private String overview;
 
-    @Column(columnDefinition="TEXT", length = 2048)
+    @Column(columnDefinition = "TEXT", length = 2048)
     private String tagline;
-
 }
