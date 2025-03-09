@@ -73,18 +73,18 @@ public class AuthController {
 
     @GetMapping("/me")
     public ResponseEntity<?> me() {
-        User user = userService.getCurrentUser();
-        if (user == null)
-            return ResponseEntity.status(403).build();
+        // User user = userService.getCurrentUser();
+        // if (user == null)
+        //     return ResponseEntity.status(403).build();
+//
+        // UserMe res = UserMe.builder()
+        //         .firstName(user.getFirstName())
+        //         .lastName(user.getLastName())
+        //         .email(user.getEmail())
+        //         .username(user.getUsername())
+        //         .uuid(user.getUuid().toString())
+        //         .build();
 
-        UserMe res = UserMe.builder()
-                .firstName(user.getFirstName())
-                .lastName(user.getLastName())
-                .email(user.getEmail())
-                .username(user.getUsername())
-                .uuid(user.getUuid().toString())
-                .build();
-
-        return ResponseEntity.ok(res);
+        return ResponseEntity.ok().build();
     }
 }

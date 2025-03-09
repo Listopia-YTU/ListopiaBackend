@@ -1,11 +1,18 @@
 package com.savt.listopia.service;
 
+import com.savt.listopia.model.movie.Movie;
 import com.savt.listopia.model.user.User;
+import com.savt.listopia.payload.dto.MovieDTO;
+import com.savt.listopia.payload.dto.UserDTO;
 import com.savt.listopia.repository.UserRepository;
 import com.savt.listopia.security.auth.AuthenticationToken;
 import com.savt.listopia.util.PasswordUtil;
-import java.util.UUID;
+
+import java.util.List;
+import java.util.stream.Collectors;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -14,6 +21,8 @@ import org.springframework.stereotype.Service;
 public class UserService {
     @Autowired
     UserRepository userRepository;
+    @Autowired
+    ModelMapper modelMapper;
 
     public User registerUser(String firstname, String lastName, String email, String username, String plainPassword) {
         if (userRepository.existsByUsername(username))
@@ -35,7 +44,7 @@ public class UserService {
     }
 
     public User getUserByEmailPassword(String email, String plainPassword) {
-        User user = userRepository.findByEmail(email);
+        User user = userRepository.findByEmail(email).orElseThrow();
         if (verifyUserPassword(user, plainPassword))
             return user;
 
@@ -43,53 +52,32 @@ public class UserService {
     }
 
     public boolean verifyUserPassword(User user, String enteredPassword) {
-        if ( user == null )
+        if (user == null)
             return false;
 
         return PasswordUtil.verifyPassword(enteredPassword, user.getHashedPassword());
     }
 
-    public void changeUserPassword(User user, String newPassword) {
-        String password = PasswordUtil.hashPassword(newPassword);
-        user.setHashedPassword(password);
-        userRepository.save(user);
+    public UserDTO getUserById(Long id) {
+        User user = userRepository.findById(id).orElseThrow();
+        return modelMapper.map(user, UserDTO.class);
     }
 
-    public boolean changeUserUsername(User user, String newUsername) {
-        if (userRepository.existsByUsername(newUsername))
-            return false; // Username already taken
-
-        user.setUsername(newUsername);
-        userRepository.save(user);
-        return true;
-    }
-
-    public boolean changeUserEmail(User user, String newEmail) {
-        if (userRepository.existsByEmail(newEmail))
-            return false; // Email already taken
-
-        user.setEmail(newEmail);
-        userRepository.save(user);
-        return true;
-    }
-
-    public User getUserByUuid(UUID uuid) {
-        return userRepository.findByUuid(uuid);
-    }
-
-    public User getUserById(Long id) {
-        return userRepository.findById(id).orElse(null);
-    }
-
-    public User getCurrentUser() {
+    public Long getCurrentUserId() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null)
             return null;
 
         if (authentication instanceof AuthenticationToken authenticationToken) {
-            return getUserById(authenticationToken.getPrincipal().getUserId());
+            return authenticationToken.getPrincipal().getUserId();
         }
 
         return null;
+    }
+
+    public List<Movie> getUserLikedMovies(Long userId) {
+        User user = userRepository.findById(userId).orElseThrow();
+        List<Movie> likedMovies = user.getLikedMovies();
+        return likedMovies;
     }
 }

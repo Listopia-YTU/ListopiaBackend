@@ -1,9 +1,11 @@
 package com.savt.listopia.model.user;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import com.savt.listopia.model.movie.Movie;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import jakarta.persistence.*;
 import java.util.UUID;
 import lombok.Data;
 
@@ -23,4 +25,12 @@ public class User {
 
     String email;
     String hashedPassword;
+
+    @ManyToMany
+    @JoinTable(
+            name = "user_liked_movies",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "movie_id")
+    )
+    List<Movie> likedMovies = new ArrayList<>();
 }
