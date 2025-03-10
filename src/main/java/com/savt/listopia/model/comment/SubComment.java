@@ -28,14 +28,4 @@ public class SubComment extends Comment {
     @ManyToOne
     @JoinColumn(name = "parent_comment_id")
     private Comment parentComment;
-
-    @ManyToOne
-    @JoinColumn(name = "user_id")
-    private User user;
-
-    @OneToMany
-    @JoinTable(name = "sub_comment_likes",
-            joinColumns = @JoinColumn(name = "sub_comment_id"),
-            inverseJoinColumns = @JoinColumn(name = "comment_like_id"))
-    private HashSet<CommentLike> commentLikes = new HashSet<>();
 }
