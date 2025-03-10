@@ -10,6 +10,7 @@ import java.util.HashSet;
 @Entity
 @Inheritance(strategy = InheritanceType.JOINED)
 @Data
+@Table(name = "comments")
 public abstract class Comment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -27,9 +28,9 @@ public abstract class Comment {
     @JoinColumn(name = "user_id")
     private User user;
 
-    @OneToMany
-    @JoinTable(name = "comment_likes",
-            joinColumns = @JoinColumn(name = "comment_id"),
-            inverseJoinColumns = @JoinColumn(name = "comment_like_id"))
-    private HashSet<CommentLike> commentLikes = new HashSet<>();
+//    @OneToMany
+//    @JoinTable(name = "comment_likes",
+//            joinColumns = @JoinColumn(name = "comment_id"),
+//            inverseJoinColumns = @JoinColumn(name = "merhaba"))
+//    private HashSet<CommentLike> commentLikes = new HashSet<>();
 }
