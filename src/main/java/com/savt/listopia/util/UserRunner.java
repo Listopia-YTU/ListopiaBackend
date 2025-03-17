@@ -2,12 +2,11 @@ package com.savt.listopia.util;
 
 import com.savt.listopia.model.movie.Movie;
 import com.savt.listopia.model.user.User;
-import com.savt.listopia.payload.dto.MovieDTO;
+import com.savt.listopia.payload.dto.MovieFrontDTO;
 import com.savt.listopia.payload.dto.UserDTO;
 import com.savt.listopia.repository.MovieRepository;
 import com.savt.listopia.repository.UserRepository;
 import com.savt.listopia.service.UserService;
-import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,8 +23,6 @@ public class UserRunner implements CommandLineRunner {
     @Autowired
     MovieRepository movieRepository;
     @Autowired
-    ModelMapper modelMapper;
-    @Autowired
     UserService userService;
 
     @Override
@@ -34,6 +31,10 @@ public class UserRunner implements CommandLineRunner {
         user1.setEmail("test@mail.com");
         user1.setUsername("user1");
 
+        User user2 = new User();
+        user2.setEmail("test2@gmail.com");
+        user2.setUsername("user2");
+
         Movie movie1 = new Movie();
         movie1.setMovieId(1);
 
@@ -41,13 +42,18 @@ public class UserRunner implements CommandLineRunner {
         movie2.setMovieId(2);
 
         userRepository.save(user1);
+        userRepository.save(user2);
         movieRepository.save(movie1);
         movieRepository.save(movie2);
 
         UserDTO userDTO = userService.getUserById(1L);
         LOGGER.info("userDTO: {}", userDTO);
         userService.likeMovie(user1.getId(), movie2, true);
-        List<MovieDTO> liked = userService.getUserLikedMovies(user1.getId());
+        List<MovieFrontDTO> liked = userService.getUserLikedMovies(user1.getId());
         LOGGER.info("liked: {}", liked);
+
+        userService.MakeFriends(user1.getId(), user2.getId());
+
+
     }
 }

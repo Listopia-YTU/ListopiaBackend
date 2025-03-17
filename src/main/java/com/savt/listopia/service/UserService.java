@@ -1,16 +1,17 @@
 package com.savt.listopia.service;
 
+import com.savt.listopia.exception.APIException;
 import com.savt.listopia.model.movie.Movie;
 import com.savt.listopia.model.user.User;
-import com.savt.listopia.payload.dto.MovieDTO;
+import com.savt.listopia.payload.dto.MovieFrontDTO;
 import com.savt.listopia.payload.dto.UserDTO;
-import com.savt.listopia.repository.MovieRepository;
 import com.savt.listopia.repository.UserRepository;
 import com.savt.listopia.security.auth.AuthenticationToken;
 import com.savt.listopia.util.PasswordUtil;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
@@ -25,8 +26,6 @@ public class UserService {
     UserRepository userRepository;
     @Autowired
     ModelMapper modelMapper;
-    @Autowired
-    private MovieRepository movieRepository;
 
     public User registerUser(String firstname, String lastName, String email, String username, String plainPassword) {
         if (userRepository.existsByUsername(username))
@@ -67,23 +66,32 @@ public class UserService {
         return modelMapper.map(user, UserDTO.class);
     }
 
-    public Long getCurrentUserId() {
+    public Optional<Long> getCurrentUserId() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null)
-            return null;
+            return Optional.empty();
 
         if (authentication instanceof AuthenticationToken authenticationToken) {
-            return authenticationToken.getPrincipal().getUserId();
+            return Optional.of(authenticationToken.getPrincipal().getUserId());
         }
 
-        return null;
+        return Optional.empty();
+    }
+
+    public void ChangeUsername(Long userId, String username) {
+        if ( userRepository.existsByUsername(username) )
+            throw new APIException("username_exists");
+
+        User user = userRepository.findById(userId).orElseThrow();
+        user.setUsername(username);
+        userRepository.save(user);
     }
 
     @Transactional
-    public List<MovieDTO> getUserLikedMovies(Long userId) {
-        List<Movie> movies = userRepository.findLikedMoviesByUserId(userId); // Convert to ArrayList
+    public List<MovieFrontDTO> getUserLikedMovies(Long userId) {
+        List<Movie> movies = userRepository.findLikedMoviesByUserId(userId);
         return movies.stream().map(
-                movie -> modelMapper.map(movie, MovieDTO.class)
+                movie -> modelMapper.map(movie, MovieFrontDTO.class)
         ).toList();
     }
 
@@ -95,6 +103,51 @@ public class UserService {
         else
             user.getLikedMovies().remove(movie);
         userRepository.save(user);
+    }
+
+    @Transactional
+    public void MakeFriends(Long userId, Long friendId) {
+        User user = userRepository.findById(userId).orElseThrow();
+        User friend = userRepository.findById(friendId).orElseThrow();
+        user.getFriends().add(friend);
+        friend.getFriends().add(user);
+        userRepository.save(user);
+        userRepository.save(friend);
+    }
+
+    @Transactional
+    public void UserFriendRequest(Long requestOwnerUserId, UUID requestedUserUuid) {
+        User requester = userRepository.getReferenceById(requestOwnerUserId);
+        User requested = userRepository.getReferenceByUuid(requestedUserUuid);
+        requested.getFriendRequests().add(requester);
+        userRepository.save(requested);
+    }
+
+    @Transactional
+    public void AcceptFriend(Long accepterId, UUID acceptedUUID) {
+        User accepter = userRepository.getReferenceByUuid(acceptedUUID);
+        User accepted = userRepository.getReferenceByUuid(acceptedUUID);
+        if ( accepter.getFriendRequests().contains(accepted) ) {
+            MakeFriends( accepter.getId(), accepted.getId() );
+            accepter.getFriendRequests().remove( accepted );
+            userRepository.save(accepter);
+        }
+    }
+
+    @Transactional
+    public List<UserDTO> UserFriendRequests(Long userId) {
+        User user = userRepository.findById(userId).orElseThrow();
+        return user.getFriendRequests().stream().map(
+                requestUser -> modelMapper.map(requestUser, UserDTO.class)
+        ).toList();
+    }
+
+    @Transactional
+    public List<UserDTO> UserFriends(Long userId) {
+        User user = userRepository.findById(userId).orElseThrow();
+        return user.getFriends().stream().map(
+                friend -> modelMapper.map(friend, UserDTO.class)
+        ).toList();
     }
 
 }
