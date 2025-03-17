@@ -4,15 +4,17 @@ import com.savt.listopia.model.movie.Movie;
 import com.savt.listopia.model.user.User;
 import com.savt.listopia.payload.dto.MovieDTO;
 import com.savt.listopia.payload.dto.UserDTO;
+import com.savt.listopia.repository.MovieRepository;
 import com.savt.listopia.repository.UserRepository;
 import com.savt.listopia.security.auth.AuthenticationToken;
 import com.savt.listopia.util.PasswordUtil;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
+
+import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -23,6 +25,8 @@ public class UserService {
     UserRepository userRepository;
     @Autowired
     ModelMapper modelMapper;
+    @Autowired
+    private MovieRepository movieRepository;
 
     public User registerUser(String firstname, String lastName, String email, String username, String plainPassword) {
         if (userRepository.existsByUsername(username))
@@ -75,9 +79,22 @@ public class UserService {
         return null;
     }
 
-    public List<Movie> getUserLikedMovies(Long userId) {
-        User user = userRepository.findById(userId).orElseThrow();
-        List<Movie> likedMovies = user.getLikedMovies();
-        return likedMovies;
+    @Transactional
+    public List<MovieDTO> getUserLikedMovies(Long userId) {
+        List<Movie> movies = userRepository.findLikedMoviesByUserId(userId); // Convert to ArrayList
+        return movies.stream().map(
+                movie -> modelMapper.map(movie, MovieDTO.class)
+        ).toList();
     }
+
+    @Transactional
+    public void likeMovie(Long userId, Movie movie, Boolean liked) {
+        User user = userRepository.findById(userId).orElseThrow();
+        if ( liked )
+            user.getLikedMovies().add(movie);
+        else
+            user.getLikedMovies().remove(movie);
+        userRepository.save(user);
+    }
+
 }

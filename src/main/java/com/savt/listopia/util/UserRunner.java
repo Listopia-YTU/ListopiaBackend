@@ -2,6 +2,7 @@ package com.savt.listopia.util;
 
 import com.savt.listopia.model.movie.Movie;
 import com.savt.listopia.model.user.User;
+import com.savt.listopia.payload.dto.MovieDTO;
 import com.savt.listopia.payload.dto.UserDTO;
 import com.savt.listopia.repository.MovieRepository;
 import com.savt.listopia.repository.UserRepository;
@@ -45,7 +46,8 @@ public class UserRunner implements CommandLineRunner {
 
         UserDTO userDTO = userService.getUserById(1L);
         LOGGER.info("userDTO: {}", userDTO);
-        List<Movie> liked = userService.getUserLikedMovies(user1.getId());
+        userService.likeMovie(user1.getId(), movie2, true);
+        List<MovieDTO> liked = userService.getUserLikedMovies(user1.getId());
         LOGGER.info("liked: {}", liked);
     }
 }
