@@ -22,5 +22,4 @@ public interface UserRepository extends JpaRepository<User, Long> {
     User getReferenceByUuid(UUID uuid);
     @Query("SELECT m FROM User u JOIN u.likedMovies m WHERE u.id = :userId")
     List<Movie> findLikedMoviesByUserId(@Param("userId") Long userId);
-
 }

@@ -54,6 +54,28 @@ public class UserRunner implements CommandLineRunner {
 
         userService.MakeFriends(user1.getId(), user2.getId());
 
+        // Message examples.
+
+        userService.sendMessage(user1.getId(), user2.getId(), "naberm amkasdvmksaas <script>alert(1);</script>");
+        userService.sendMessage(user2.getId(), user1.getId(), "REPORT ETT!!");
+        userService.markPrivateMessageReported(2L);
+
+        LOGGER.info("user1 received: {}", userService.getAllMessagesOfUserReceived(user1.getId()));
+        LOGGER.info("user1 sent: {}", userService.getAllMessagesUserSent(user1.getId()));
+
+        LOGGER.info("user2 received: {}", userService.getAllMessagesOfUserReceived(user2.getId()));
+        LOGGER.info("user2 sent: {}", userService.getAllMessagesUserSent(user2.getId()));
+
+        LOGGER.info("user1 received from user2: {}", userService.getAllMessagesReceivedFrom(user1.getId(), user2.getId()));
+        LOGGER.info("user2 received from user1: {}", userService.getAllMessagesReceivedFrom(user2.getId(), user1.getId()));
+
+        LOGGER.info("user1 sent to user2: {}", userService.getAllMessagesSentTo(user1.getId(), user2.getId()));
+        LOGGER.info("user2 sent to user1: {}", userService.getAllMessagesSentTo(user2.getId(), user1.getId()));
+
+        LOGGER.info("reported messages: {}", userService.getAllReportedMessages());
+
+        LOGGER.info("is reported 1: {}", userService.isPrivateMessageReported(1L));
+        LOGGER.info("is reported 2: {}", userService.isPrivateMessageReported(2L));
 
     }
 }

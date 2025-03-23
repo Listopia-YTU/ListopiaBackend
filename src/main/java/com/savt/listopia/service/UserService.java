@@ -2,13 +2,17 @@ package com.savt.listopia.service;
 
 import com.savt.listopia.exception.APIException;
 import com.savt.listopia.model.movie.Movie;
+import com.savt.listopia.model.user.PrivateMessage;
 import com.savt.listopia.model.user.User;
 import com.savt.listopia.payload.dto.MovieFrontDTO;
+import com.savt.listopia.payload.dto.PrivateMessageDTO;
 import com.savt.listopia.payload.dto.UserDTO;
+import com.savt.listopia.repository.PrivateMessageRepository;
 import com.savt.listopia.repository.UserRepository;
 import com.savt.listopia.security.auth.AuthenticationToken;
 import com.savt.listopia.util.PasswordUtil;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -19,6 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.util.HtmlUtils;
 
 @Service
 public class UserService {
@@ -26,6 +31,8 @@ public class UserService {
     UserRepository userRepository;
     @Autowired
     ModelMapper modelMapper;
+    @Autowired
+    private PrivateMessageRepository privateMessageRepository;
 
     public User registerUser(String firstname, String lastName, String email, String username, String plainPassword) {
         if (userRepository.existsByUsername(username))
@@ -76,6 +83,10 @@ public class UserService {
         }
 
         return Optional.empty();
+    }
+
+    public UUID getUUIDFromUserId(Long userId) {
+        return userRepository.findById(userId).orElseThrow().getUuid();
     }
 
     public void ChangeUsername(Long userId, String username) {
@@ -150,4 +161,63 @@ public class UserService {
         ).toList();
     }
 
+    @Transactional
+    public void sendMessage(Long fromId, Long toId, String messageUnsafe) {
+        PrivateMessage message = new PrivateMessage();
+        message.setFromUserId(fromId);
+        message.setToUserId(toId);
+        message.setSentAtTimestampSeconds(Instant.now().getEpochSecond());
+        // @todo: use Apache Commons?
+        message.setMessage(HtmlUtils.htmlEscape(messageUnsafe));
+        privateMessageRepository.save(message);
+    }
+
+    @Transactional
+    public void markPrivateMessageReported(Long messageId) {
+        PrivateMessage msg = privateMessageRepository.getReferenceById(messageId);
+        msg.setIsReported(true);
+        privateMessageRepository.save(msg);
+    }
+
+    public Boolean isPrivateMessageReported(Long messageId) {
+        return privateMessageRepository.findPrivateMessageById(messageId).orElseThrow().getIsReported();
+    }
+
+    public List<PrivateMessage> getAllReportedMessages() {
+        return privateMessageRepository.findAllByIsReportedTrue();
+    }
+
+    private PrivateMessageDTO privateMessageToDTO(PrivateMessage message) {
+        PrivateMessageDTO dto = new PrivateMessageDTO();
+        dto.setId(message.getId());
+        dto.setFromUserUUID(getUUIDFromUserId(message.getFromUserId()).toString());
+        dto.setToUserUUID(getUUIDFromUserId(message.getToUserId()).toString());
+        dto.setSentAtTimestampSeconds(message.getSentAtTimestampSeconds());
+        dto.setMessage(message.getMessage());
+        return dto;
+    }
+
+    public List<PrivateMessageDTO> getAllMessagesOfUserReceived(Long userId) {
+        return privateMessageRepository.findAllByToUserId(userId)
+                .stream().map(this::privateMessageToDTO)
+                .toList();
+    }
+
+    public List<PrivateMessageDTO> getAllMessagesUserSent(Long userId) {
+        return privateMessageRepository.findAllByFromUserId(userId)
+                .stream().map(this::privateMessageToDTO)
+                .toList();
+    }
+
+    public List<PrivateMessageDTO> getAllMessagesSentTo(Long userId, Long toId) {
+        return privateMessageRepository.findAllByFromUserIdAndToUserId(userId, toId)
+                .stream().map(this::privateMessageToDTO)
+                .toList();
+    }
+
+    public List<PrivateMessageDTO> getAllMessagesReceivedFrom(Long userId, Long fromId) {
+        return privateMessageRepository.findAllByFromUserIdAndToUserId(fromId, userId)
+                .stream().map(this::privateMessageToDTO)
+                .toList();
+    }
 }
