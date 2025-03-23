@@ -7,7 +7,9 @@ import com.savt.listopia.payload.APIResponse;
 import java.util.HashMap;
 import java.util.Map;
 
+import info.movito.themoviedbapi.tools.TmdbException;
 import jakarta.validation.ConstraintViolationException;
+import org.hibernate.TransientObjectException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -50,6 +52,12 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(ConstraintViolationException.class)
     public ResponseEntity<APIResponse> myConstraintViolationException(ConstraintViolationException e) {
+        APIResponse apiResponse = new APIResponse(e.getMessage(), false);
+        return new ResponseEntity<>(apiResponse, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(TmdbException.class)
+    public ResponseEntity<APIResponse> myTmdbException(TmdbException e) {
         APIResponse apiResponse = new APIResponse(e.getMessage(), false);
         return new ResponseEntity<>(apiResponse, HttpStatus.BAD_REQUEST);
     }
