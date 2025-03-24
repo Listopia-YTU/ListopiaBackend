@@ -1,8 +1,8 @@
 package com.savt.listopia.security.request;
 
+import com.savt.listopia.util.validator.ValidUsername;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import java.util.Set;
 import lombok.Data;
 
 @Data
@@ -20,6 +20,6 @@ public class SignUpRequestBody {
     @NotBlank
     private String lastName;
 
-    @NotBlank
+    @ValidUsername
     private String username;
 }

@@ -1,8 +1,7 @@
-package com.savt.listopia.controller.api.auth;
+package com.savt.listopia.controller;
 
 import com.savt.listopia.model.user.Session;
 import com.savt.listopia.model.user.User;
-import com.savt.listopia.payload.response.user.UserMe;
 import com.savt.listopia.security.request.SignInRequestBody;
 import com.savt.listopia.security.request.SignUpRequestBody;
 import com.savt.listopia.service.SessionService;
@@ -71,20 +70,4 @@ public class AuthController {
         return ResponseEntity.ok().build();
     }
 
-    @GetMapping("/me")
-    public ResponseEntity<?> me() {
-        User user = userService.getCurrentUser();
-        if (user == null)
-            return ResponseEntity.status(403).build();
-
-        UserMe res = UserMe.builder()
-                .firstName(user.getFirstName())
-                .lastName(user.getLastName())
-                .email(user.getEmail())
-                .username(user.getUsername())
-                .uuid(user.getUuid().toString())
-                .build();
-
-        return ResponseEntity.ok(res);
-    }
 }
