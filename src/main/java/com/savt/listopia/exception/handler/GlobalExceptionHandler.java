@@ -4,6 +4,8 @@ import com.savt.listopia.exception.APIException;
 import com.savt.listopia.exception.ResourceAlreadyExistException;
 import com.savt.listopia.exception.ResourceNotFoundException;
 import com.savt.listopia.payload.APIResponse;
+
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -21,7 +23,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 public class GlobalExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, String>> myMethodArgumentNotValidException(
-        MethodArgumentNotValidException e) {
+            MethodArgumentNotValidException e) {
         Map<String, String> response = new HashMap<>();
         e.getBindingResult().getAllErrors().forEach((err -> {
             String fieldName = ((FieldError) err).getField();
@@ -39,7 +41,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(ResourceAlreadyExistException.class)
     public ResponseEntity<APIResponse> myResourceAlreadyExistException(
-        ResourceAlreadyExistException e) {
+            ResourceAlreadyExistException e) {
         APIResponse apiResponse = new APIResponse(e.getMessage(), false);
         return new ResponseEntity<>(apiResponse, HttpStatus.CONFLICT);
     }
@@ -58,6 +60,12 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(TmdbException.class)
     public ResponseEntity<APIResponse> myTmdbException(TmdbException e) {
+        APIResponse apiResponse = new APIResponse(e.getMessage(), false);
+        return new ResponseEntity<>(apiResponse, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(IOException.class)
+    public ResponseEntity<APIResponse> myIoException(IOException e) {
         APIResponse apiResponse = new APIResponse(e.getMessage(), false);
         return new ResponseEntity<>(apiResponse, HttpStatus.BAD_REQUEST);
     }

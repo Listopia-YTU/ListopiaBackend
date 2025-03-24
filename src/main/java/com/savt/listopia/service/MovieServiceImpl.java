@@ -12,7 +12,7 @@ import com.savt.listopia.payload.dto.MovieFrontDTO;
 import com.savt.listopia.payload.dto.MovieTranslationDTO;
 import com.savt.listopia.payload.response.MovieFrontResponse;
 import com.savt.listopia.repository.GenreTranslationRepository;
-import com.savt.listopia.repository.ImageRepository;
+import com.savt.listopia.repository.MovieImageRepository;
 import com.savt.listopia.repository.MovieRepository;
 import com.savt.listopia.repository.MovieTranslationRepository;
 import info.movito.themoviedbapi.TmdbApi;
@@ -42,7 +42,7 @@ public class MovieServiceImpl implements MovieService {
     private MovieRepository movieRepository;
 
     @Autowired
-    private ImageRepository imageRepository;
+    private MovieImageRepository movieImageRepository;
 
     @Value("${tmdb.apiKey}")
     private String tmdbKey;
@@ -99,7 +99,7 @@ public class MovieServiceImpl implements MovieService {
 
         movieFrontDTOS.forEach(movieFrontDTO -> movieFrontDTO
                 .setPoster(
-                        imageRepository.findMovieImageByMovieId(movieFrontDTO.getMovieId(), Limit.of(1))
+                        movieImageRepository.findMovieImageByMovieId(movieFrontDTO.getMovieId(), Limit.of(1))
                 ));
 
         MovieFrontResponse movieFrontResponse = new MovieFrontResponse();
@@ -159,7 +159,7 @@ public class MovieServiceImpl implements MovieService {
 
         movieFrontDTOS.forEach(movieFrontDTO -> movieFrontDTO
                 .setPoster(
-                        imageRepository.findMovieImageByMovieId(movieFrontDTO.getMovieId(), Limit.of(1))
+                        movieImageRepository.findMovieImageByMovieId(movieFrontDTO.getMovieId(), Limit.of(1))
                 ));
 
         MovieFrontResponse movieFrontResponse = new MovieFrontResponse();
@@ -234,9 +234,9 @@ public class MovieServiceImpl implements MovieService {
             }
         }
 
-        movieDTO.setBackdrop(imageRepository.findMovieImageByMovieIdAndType(movieId, Limit.of(1), 1));
-        movieDTO.setPoster(imageRepository.findMovieImageByMovieIdAndType(movieId, Limit.of(1), 2));
-        movieDTO.setLogo(imageRepository.findMovieImageByMovieIdAndType(movieId, Limit.of(1), 3));
+        movieDTO.setBackdrop(movieImageRepository.findMovieImageByMovieIdAndType(movieId, Limit.of(1), 1));
+        movieDTO.setPoster(movieImageRepository.findMovieImageByMovieIdAndType(movieId, Limit.of(1), 2));
+        movieDTO.setLogo(movieImageRepository.findMovieImageByMovieIdAndType(movieId, Limit.of(1), 3));
         return movieDTO;
     }
 
@@ -360,9 +360,9 @@ public class MovieServiceImpl implements MovieService {
 
         MovieDTO movieDTO = modelMapper.map(movie, MovieDTO.class);
 
-        movieDTO.setBackdrop(imageRepository.findMovieImageByMovieIdAndType(movieId, Limit.of(1), 1));
-        movieDTO.setPoster(imageRepository.findMovieImageByMovieIdAndType(movieId, Limit.of(1), 2));
-        movieDTO.setLogo(imageRepository.findMovieImageByMovieIdAndType(movieId, Limit.of(1), 3));
+        movieDTO.setBackdrop(movieImageRepository.findMovieImageByMovieIdAndType(movieId, Limit.of(1), 1));
+        movieDTO.setPoster(movieImageRepository.findMovieImageByMovieIdAndType(movieId, Limit.of(1), 2));
+        movieDTO.setLogo(movieImageRepository.findMovieImageByMovieIdAndType(movieId, Limit.of(1), 3));
         return movieDTO;
     }
 
