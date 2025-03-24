@@ -1,6 +1,5 @@
 package com.savt.listopia.model.user;
 
-import jakarta.annotation.Nullable;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -12,9 +11,13 @@ public class PrivateMessage {
     @GeneratedValue
     Long id;
 
-    Long fromUserId;
+    @ManyToOne
+    @JoinColumn(name = "from_user_id", nullable = false)
+    User fromUser;
 
-    Long toUserId;
+    @ManyToOne
+    @JoinColumn(name = "to_user_id", nullable = false)
+    User toUser;
 
     Long sentAtTimestampSeconds;
 

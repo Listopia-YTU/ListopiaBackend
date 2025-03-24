@@ -18,12 +18,16 @@ import java.util.List;
 @Configuration
 public class UserRunner implements CommandLineRunner {
     private static final Logger LOGGER = LoggerFactory.getLogger(UserRunner.class);
-    @Autowired
-    UserRepository userRepository;
-    @Autowired
-    MovieRepository movieRepository;
-    @Autowired
-    UserService userService;
+
+    private final UserRepository userRepository;
+    private final MovieRepository movieRepository;
+    private final UserService userService;
+
+    public UserRunner(UserRepository userRepository, MovieRepository movieRepository, UserService userService) {
+        this.userRepository = userRepository;
+        this.movieRepository = movieRepository;
+        this.userService = userService;
+    }
 
     @Override
     public void run(String... args) {
@@ -54,28 +58,44 @@ public class UserRunner implements CommandLineRunner {
 
         userService.MakeFriends(user1.getId(), user2.getId());
 
-        // Message examples.
+        int page = 0;
+        int size = 10;
 
+        // Message examples.
         userService.sendMessage(user1.getId(), user2.getId(), "naberm amkasdvmksaas <script>alert(1);</script>");
         userService.sendMessage(user2.getId(), user1.getId(), "REPORT ETT!!");
         userService.markPrivateMessageReported(2L);
 
-        LOGGER.info("user1 received: {}", userService.getAllMessagesOfUserReceived(user1.getId()));
-        LOGGER.info("user1 sent: {}", userService.getAllMessagesUserSent(user1.getId()));
+        LOGGER.info("user1 received: {}", userService.getAllMessagesOfUserReceived(user1.getId(), page, size).getContent());
+        LOGGER.info("user1 sent: {}", userService.getAllMessagesUserSent(user1.getId(), page, size).getContent());
 
-        LOGGER.info("user2 received: {}", userService.getAllMessagesOfUserReceived(user2.getId()));
-        LOGGER.info("user2 sent: {}", userService.getAllMessagesUserSent(user2.getId()));
+        LOGGER.info("user2 received: {}", userService.getAllMessagesOfUserReceived(user2.getId(), page, size).getContent());
+        LOGGER.info("user2 sent: {}", userService.getAllMessagesUserSent(user2.getId(), page, size).getContent());
 
-        LOGGER.info("user1 received from user2: {}", userService.getAllMessagesReceivedFrom(user1.getId(), user2.getId()));
-        LOGGER.info("user2 received from user1: {}", userService.getAllMessagesReceivedFrom(user2.getId(), user1.getId()));
+        LOGGER.info("user1 received from user2: {}", userService.getAllMessagesReceivedFrom(user1.getId(), user2.getId(), page, size).getContent());
+        LOGGER.info("user2 received from user1: {}", userService.getAllMessagesReceivedFrom(user2.getId(), user1.getId(), page, size).getContent());
 
-        LOGGER.info("user1 sent to user2: {}", userService.getAllMessagesSentTo(user1.getId(), user2.getId()));
-        LOGGER.info("user2 sent to user1: {}", userService.getAllMessagesSentTo(user2.getId(), user1.getId()));
+        LOGGER.info("user1 sent to user2: {}", userService.getAllMessagesSentTo(user1.getId(), user2.getId(), page, size).getContent());
+        LOGGER.info("user2 sent to user1: {}", userService.getAllMessagesSentTo(user2.getId(), user1.getId(), page, size).getContent());
 
-        LOGGER.info("reported messages: {}", userService.getAllReportedMessages());
+        LOGGER.info("reported messages: {}", userService.getAllReportedMessages(page, size).getContent());
 
         LOGGER.info("is reported 1: {}", userService.isPrivateMessageReported(1L));
         LOGGER.info("is reported 2: {}", userService.isPrivateMessageReported(2L));
 
+
+        // MovieComment
+
+        userService.createMovieComment(user1.getId(), movie1.getMovieId(), false, "selam bebek <script />");
+
+        LOGGER.info("MovieComment - getMovieCommentById: {}", userService.getMovieCommentById(1L));
+        LOGGER.info("MovieComment - getMovieCommentForMovie: {}", userService.getMovieCommentForMovie(movie1.getMovieId(), page, size).getContent());
+        LOGGER.info("MovieComment - getMovieCommentFromUser: {}", userService.getMovieCommentFromUser(user1.getId(), page, size).getContent());
+        LOGGER.info("MovieComment - getMovieCommentForMovieFromUser: {}", userService.getMovieCommentForMovieFromUser(movie1.getMovieId(), user1.getId(), page, size).getContent());
+        LOGGER.info("MovieComment - getMovieCommentIsReported: {}", userService.getMovieCommentIsReported(false, page, size).getContent());
+
+        userService.deleteMovieComment(1L);
+        // crash :( çünkü yok hahaha :)
+        // LOGGER.info("MovieComment - getMovieCommentById (after deleted): {}", userService.getMovieCommentById(1L));
     }
 }
