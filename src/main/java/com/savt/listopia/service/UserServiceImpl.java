@@ -114,6 +114,13 @@ public class UserServiceImpl implements UserService {
         userRepository.save(user);
     }
 
+    @Override
+    public Long getUserIdFromUUID(UUID uuid) {
+        return userRepository.findByUuid(uuid)
+                .orElseThrow(() -> new UserNotFoundException("user_does_not_exists"))
+                .getId();
+    }
+
     @Transactional
     public List<MovieFrontDTO> getUserLikedMovies(Long userId) {
         List<Movie> movies = userRepository.findLikedMoviesByUserId(userId);
@@ -175,6 +182,15 @@ public class UserServiceImpl implements UserService {
         return user.getFriends().stream().map(
                 friend -> modelMapper.map(friend, UserDTO.class)
         ).toList();
+    }
+
+    @Override
+    @Transactional
+    public void userReportMessage(Long userId, Long messageId) {
+         PrivateMessage msg = privateMessageRepository.findById(messageId).orElseThrow(() -> new UserNotFoundException("message_does_not_exists"));
+         if (msg.getToUser().getId().equals(userId)) {
+             markPrivateMessageReported(messageId);
+         }
     }
 
     @Transactional

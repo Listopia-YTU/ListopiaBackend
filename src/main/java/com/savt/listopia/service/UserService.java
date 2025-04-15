@@ -25,6 +25,7 @@ public interface UserService {
     Optional<Long> getCurrentUserId();
     UUID getUUIDFromUserId(Long userId);
     void ChangeUsername(Long userId, String username);
+    Long getUserIdFromUUID(UUID uuid);
 
     @Transactional
     List<MovieFrontDTO> getUserLikedMovies(Long userId);
@@ -42,6 +43,8 @@ public interface UserService {
     @Transactional
     List<UserDTO> UserFriends(Long userId);
 
+    @Transactional
+    void userReportMessage(Long userId, Long messageId);
     @Transactional
     void sendMessage(Long fromId, Long toId, String messageUnsafe);
     @Transactional
