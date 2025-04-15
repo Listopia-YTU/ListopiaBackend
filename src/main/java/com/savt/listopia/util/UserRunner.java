@@ -9,7 +9,6 @@ import com.savt.listopia.repository.UserRepository;
 import com.savt.listopia.service.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Configuration;
 
@@ -92,7 +91,7 @@ public class UserRunner implements CommandLineRunner {
         LOGGER.info("MovieComment - getMovieCommentForMovie: {}", userService.getMovieCommentForMovie(movie1.getMovieId(), page, size).getContent());
         LOGGER.info("MovieComment - getMovieCommentFromUser: {}", userService.getMovieCommentFromUser(user1.getId(), page, size).getContent());
         LOGGER.info("MovieComment - getMovieCommentForMovieFromUser: {}", userService.getMovieCommentForMovieFromUser(movie1.getMovieId(), user1.getId(), page, size).getContent());
-        LOGGER.info("MovieComment - getMovieCommentIsReported: {}", userService.getMovieCommentIsReported(false, page, size).getContent());
+        LOGGER.info("MovieComment - getMovieCommentIsReported: {}", userService.getMovieCommentReported(false, page, size).getContent());
 
         userService.deleteMovieComment(1L);
         // crash :( çünkü yok hahaha :)

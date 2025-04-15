@@ -31,7 +31,7 @@ public class UserController {
     }
 
     @GetMapping("/me")
-    public ResponseEntity<?> Me() {
+    public ResponseEntity<UserDTO> Me() {
         Long userId = userService.getCurrentUserId().orElseThrow();
         UserDTO userDTO = userService.getUserById(userId);
         return ResponseEntity.ok(userDTO);
@@ -52,14 +52,14 @@ public class UserController {
     }
 
     @GetMapping("/friend_requests")
-    public ResponseEntity<?> FriendRequests() {
+    public ResponseEntity<List<UserDTO>> FriendRequests() {
         Long userId = userService.getCurrentUserId().orElseThrow();
         List<UserDTO> requests = userService.UserFriendRequests(userId);
         return ResponseEntity.ok(requests);
     }
 
     @GetMapping("/friends")
-    public ResponseEntity<?> Friends() {
+    public ResponseEntity<List<UserDTO>> Friends() {
         Long userId = userService.getCurrentUserId().orElseThrow();
         List<UserDTO> friends = userService.UserFriends(userId);
         return ResponseEntity.ok(friends);

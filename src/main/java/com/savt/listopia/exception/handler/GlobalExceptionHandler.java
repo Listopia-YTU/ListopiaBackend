@@ -3,6 +3,9 @@ package com.savt.listopia.exception.handler;
 import com.savt.listopia.exception.APIException;
 import com.savt.listopia.exception.ResourceAlreadyExistException;
 import com.savt.listopia.exception.ResourceNotFoundException;
+import com.savt.listopia.exception.userException.UserException;
+import com.savt.listopia.exception.userException.UserNotAuthorizedException;
+import com.savt.listopia.exception.userException.UserNotFoundException;
 import com.savt.listopia.payload.APIResponse;
 
 import java.io.IOException;
@@ -68,6 +71,17 @@ public class GlobalExceptionHandler {
     public ResponseEntity<APIResponse> myIoException(IOException e) {
         APIResponse apiResponse = new APIResponse(e.getMessage(), false);
         return new ResponseEntity<>(apiResponse, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(UserException.class)
+    public ResponseEntity<APIResponse> myUserException(UserException e) {
+        if (e instanceof UserNotFoundException) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        if (e instanceof UserNotAuthorizedException) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+        return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
 }
