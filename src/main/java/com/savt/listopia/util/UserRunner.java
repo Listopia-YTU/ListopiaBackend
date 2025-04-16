@@ -9,13 +9,14 @@ import com.savt.listopia.repository.UserRepository;
 import com.savt.listopia.service.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 
 import java.util.List;
 
 @Configuration
+@Profile("dev")
 public class UserRunner implements CommandLineRunner {
     private static final Logger LOGGER = LoggerFactory.getLogger(UserRunner.class);
 
@@ -82,7 +83,6 @@ public class UserRunner implements CommandLineRunner {
 
         LOGGER.info("is reported 1: {}", userService.isPrivateMessageReported(1L));
         LOGGER.info("is reported 2: {}", userService.isPrivateMessageReported(2L));
-
 
         // MovieComment
 
