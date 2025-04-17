@@ -1,12 +1,15 @@
 package com.savt.listopia.controller;
 
 
+import com.savt.listopia.exception.userException.UserNotFoundException;
+import com.savt.listopia.payload.dto.PrivateMessageDTO;
 import com.savt.listopia.payload.dto.UserDTO;
 import com.savt.listopia.security.request.ChangeUsernameRequest;
 import com.savt.listopia.service.UserService;
 import jakarta.validation.Valid;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -31,7 +34,7 @@ public class UserController {
     }
 
     @GetMapping("/me")
-    public ResponseEntity<?> Me() {
+    public ResponseEntity<UserDTO> Me() {
         Long userId = userService.getCurrentUserId().orElseThrow();
         UserDTO userDTO = userService.getUserById(userId);
         return ResponseEntity.ok(userDTO);
@@ -52,17 +55,85 @@ public class UserController {
     }
 
     @GetMapping("/friend_requests")
-    public ResponseEntity<?> FriendRequests() {
+    public ResponseEntity<List<UserDTO>> FriendRequests() {
         Long userId = userService.getCurrentUserId().orElseThrow();
         List<UserDTO> requests = userService.UserFriendRequests(userId);
         return ResponseEntity.ok(requests);
     }
 
     @GetMapping("/friends")
-    public ResponseEntity<?> Friends() {
+    public ResponseEntity<List<UserDTO>> Friends() {
         Long userId = userService.getCurrentUserId().orElseThrow();
         List<UserDTO> friends = userService.UserFriends(userId);
         return ResponseEntity.ok(friends);
+    }
+
+    @PostMapping("/message")
+    public ResponseEntity<?> Message(@Valid @RequestBody UUID toUserUuid, @RequestBody String message) {
+        userService.sendMessage(
+                userService.getCurrentUserId().orElseThrow(() -> new UserNotFoundException("user_does_not_exists")),
+                userService.getUserIdFromUUID(toUserUuid),
+                message
+        );
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/message/{id}/report")
+    public ResponseEntity<?> MessageReport(@PathVariable String id) {
+        try  {
+            Long msgId = Long.parseLong(id);
+            userService.userReportMessage(
+                    userService.getCurrentUserId().orElseThrow(() -> new UserNotFoundException("user_does_not_exists")),
+                    msgId
+            );
+            return ResponseEntity.ok().build();
+        } catch (NumberFormatException e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    @GetMapping("/message/received")
+    public ResponseEntity<List<PrivateMessageDTO>> Received(@RequestBody Integer page) {
+        Long userId = userService.getCurrentUserId()
+                .orElseThrow(() -> new UserNotFoundException("user_does_not_exists"));
+        Page<PrivateMessageDTO> messages = userService.getAllMessagesOfUserReceived(userId, page, 50);
+        return ResponseEntity.ok(messages.getContent());
+    }
+
+    @GetMapping("/message/sent")
+    public ResponseEntity<List<PrivateMessageDTO>> Sent(@RequestBody Integer page) {
+        Long userId = userService.getCurrentUserId()
+                .orElseThrow(() -> new UserNotFoundException("user_does_not_exists"));
+        Page<PrivateMessageDTO> messages = userService.getAllMessagesUserSent(userId, page, 50);
+        return ResponseEntity.ok(messages.getContent());
+    }
+
+    @GetMapping("/message/from/{userUuid}")
+    public ResponseEntity<List<PrivateMessageDTO>> MessagesFromUser(@PathVariable String userUuid, @RequestBody Integer page) {
+        Long userId = userService.getCurrentUserId().orElseThrow(
+                () -> new UserNotFoundException("user_does_not_exists")
+        );
+        Page<PrivateMessageDTO> messageDTOS = userService.getAllMessagesReceivedFrom(
+                userId,
+                userService.getUserIdFromUUID(UUID.fromString(userUuid)),
+                page,
+                50
+        );
+        return ResponseEntity.ok(messageDTOS.getContent());
+    }
+
+    @GetMapping("/message/to/{userUuid}")
+    public ResponseEntity<List<PrivateMessageDTO>> MessagesToUser(@PathVariable String userUuid, @RequestBody Integer page) {
+        Long userId = userService.getCurrentUserId().orElseThrow(
+                () -> new UserNotFoundException("user_does_not_exists")
+        );
+        Page<PrivateMessageDTO> messageDTOS = userService.getAllMessagesSentTo(
+                userId,
+                userService.getUserIdFromUUID(UUID.fromString(userUuid)),
+                page,
+                50
+        );
+        return ResponseEntity.ok(messageDTOS.getContent());
     }
 
 }
