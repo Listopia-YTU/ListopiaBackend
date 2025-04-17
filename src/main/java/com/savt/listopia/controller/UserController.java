@@ -35,35 +35,35 @@ public class UserController {
 
     @GetMapping("/me")
     public ResponseEntity<UserDTO> Me() {
-        Long userId = userService.getCurrentUserId().orElseThrow();
+        Long userId = userService.getCurrentUserId().orElseThrow(UserNotFoundException::new);
         UserDTO userDTO = userService.getUserById(userId);
         return ResponseEntity.ok(userDTO);
     }
 
     @PostMapping("/add_friend")
     public ResponseEntity<?> AddFriend(@Valid @RequestBody UUID uuid) {
-        Long userId = userService.getCurrentUserId().orElseThrow();
+        Long userId = userService.getCurrentUserId().orElseThrow(UserNotFoundException::new);
         userService.UserFriendRequest(userId, uuid);
         return ResponseEntity.ok().build();
     }
 
     @PostMapping("accept_friend")
     public ResponseEntity<?> AcceptFriend(@Valid @RequestBody UUID uuid) {
-        Long userId = userService.getCurrentUserId().orElseThrow();
+        Long userId = userService.getCurrentUserId().orElseThrow(UserNotFoundException::new);
         userService.AcceptFriend(userId, uuid);
         return ResponseEntity.ok().build();
     }
 
     @GetMapping("/friend_requests")
     public ResponseEntity<List<UserDTO>> FriendRequests() {
-        Long userId = userService.getCurrentUserId().orElseThrow();
+        Long userId = userService.getCurrentUserId().orElseThrow(UserNotFoundException::new);
         List<UserDTO> requests = userService.UserFriendRequests(userId);
         return ResponseEntity.ok(requests);
     }
 
     @GetMapping("/friends")
     public ResponseEntity<List<UserDTO>> Friends() {
-        Long userId = userService.getCurrentUserId().orElseThrow();
+        Long userId = userService.getCurrentUserId().orElseThrow(UserNotFoundException::new);
         List<UserDTO> friends = userService.UserFriends(userId);
         return ResponseEntity.ok(friends);
     }
