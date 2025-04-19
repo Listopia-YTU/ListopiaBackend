@@ -1,6 +1,8 @@
 package com.savt.listopia.service;
 
 import com.savt.listopia.exception.APIException;
+import com.savt.listopia.exception.userException.UserException;
+import com.savt.listopia.exception.userException.UserNotAuthorizedException;
 import com.savt.listopia.exception.userException.UserNotFoundException;
 import com.savt.listopia.model.movie.Movie;
 import com.savt.listopia.model.user.MovieComment;
@@ -19,6 +21,7 @@ import com.savt.listopia.util.PasswordUtil;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -49,7 +52,7 @@ public class UserServiceImpl implements UserService {
         this.movieCommentRepository = movieCommentRepository;
     }
 
-    public User registerUser(String firstname, String lastName, String username, String email, String plainPassword) {
+    public User registerUser(String firstname, String lastName, String email, String username, String plainPassword) {
         if (userRepository.existsByUsername(username))
             return null;
 
@@ -101,15 +104,20 @@ public class UserServiceImpl implements UserService {
         return Optional.empty();
     }
 
+    @Override
+    public Long getCurrentUserIdOrThrow() {
+        return getCurrentUserId().orElseThrow(UserNotAuthorizedException::new);
+    }
+
     public UUID getUUIDFromUserId(Long userId) {
         return userRepository.findById(userId).orElseThrow().getUuid();
     }
 
     public void ChangeUsername(Long userId, String username) {
         if ( userRepository.existsByUsername(username) )
-            throw new APIException("username_exists");
+            throw new UserException("username_exists");
 
-        User user = userRepository.findById(userId).orElseThrow();
+        User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
         user.setUsername(username);
         userRepository.save(user);
     }
@@ -153,6 +161,8 @@ public class UserServiceImpl implements UserService {
     public void UserFriendRequest(Long requestOwnerUserId, UUID requestedUserUuid) {
         User requester = userRepository.getReferenceById(requestOwnerUserId);
         User requested = userRepository.getReferenceByUuid(requestedUserUuid);
+        if (Objects.equals(requester.getId(), requested.getId()))
+            return;
         requested.getFriendRequests().add(requester);
         userRepository.save(requested);
     }

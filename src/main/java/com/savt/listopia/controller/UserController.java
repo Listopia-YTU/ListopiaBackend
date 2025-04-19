@@ -5,6 +5,7 @@ import com.savt.listopia.exception.userException.UserNotFoundException;
 import com.savt.listopia.payload.dto.PrivateMessageDTO;
 import com.savt.listopia.payload.dto.UserDTO;
 import com.savt.listopia.security.request.ChangeUsernameRequest;
+import com.savt.listopia.security.request.MessageUserRequest;
 import com.savt.listopia.service.UserService;
 import jakarta.validation.Valid;
 import org.slf4j.LoggerFactory;
@@ -28,7 +29,8 @@ public class UserController {
 
     @PostMapping("/change_username")
     public ResponseEntity<?> ChangeUsername(@Valid @RequestBody ChangeUsernameRequest changeUsernameRequest) {
-        Long userId = userService.getCurrentUserId().orElseThrow();
+        Long userId = userService.getCurrentUserIdOrThrow();
+        LOGGER.trace("change_username:id: {}", userId);
         userService.ChangeUsername(userId, changeUsernameRequest.getNewUsername());
         return ResponseEntity.ok().build();
     }
@@ -69,11 +71,11 @@ public class UserController {
     }
 
     @PostMapping("/message")
-    public ResponseEntity<?> Message(@Valid @RequestBody UUID toUserUuid, @RequestBody String message) {
+    public ResponseEntity<?> Message(@Valid @RequestBody MessageUserRequest request) {
         userService.sendMessage(
                 userService.getCurrentUserId().orElseThrow(() -> new UserNotFoundException("user_does_not_exists")),
-                userService.getUserIdFromUUID(toUserUuid),
-                message
+                userService.getUserIdFromUUID(request.getTo()),
+                request.getMessage()
         );
         return ResponseEntity.ok().build();
     }

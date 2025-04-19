@@ -23,6 +23,7 @@ public interface UserService {
     boolean verifyUserPassword(User user, String enteredPassword);
     UserDTO getUserById(Long id);
     Optional<Long> getCurrentUserId();
+    Long getCurrentUserIdOrThrow();
     UUID getUUIDFromUserId(Long userId);
     void ChangeUsername(Long userId, String username);
     Long getUserIdFromUUID(UUID uuid);

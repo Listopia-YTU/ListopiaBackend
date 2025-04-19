@@ -14,7 +14,8 @@ import java.util.Map;
 
 import info.movito.themoviedbapi.tools.TmdbException;
 import jakarta.validation.ConstraintViolationException;
-import org.hibernate.TransientObjectException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -24,6 +25,8 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+    private static final Logger LOGGER = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, String>> myMethodArgumentNotValidException(
             MethodArgumentNotValidException e) {
@@ -76,12 +79,12 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(UserException.class)
     public ResponseEntity<APIResponse> myUserException(UserException e) {
         if (e instanceof UserNotFoundException) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            return ResponseEntity.status(404).body(APIResponse.builder().success(false).message(e.getMessage()).build());
         }
         if (e instanceof UserNotAuthorizedException) {
-            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+            return ResponseEntity.status(403).body(APIResponse.builder().success(false).message(e.getMessage()).build());
         }
-        return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        return ResponseEntity.status(403).body(APIResponse.builder().success(false).message(e.getMessage()).build());
     }
 
 }

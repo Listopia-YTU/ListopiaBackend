@@ -38,6 +38,7 @@ public class SessionService {
 
         cookie.setSecure(true);
         cookie.setHttpOnly(true);
+        cookie.setPath("/");
 
         return cookie;
     }

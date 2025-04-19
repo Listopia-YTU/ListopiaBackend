@@ -65,6 +65,7 @@ public class AuthController {
 
         Cookie deleteCookie = new Cookie("_SESSION", "");
         deleteCookie.setMaxAge(0);
+        deleteCookie.setPath("/");
         response.addCookie(deleteCookie);
 
         return ResponseEntity.ok().build();
