@@ -1,6 +1,6 @@
 package com.savt.listopia.service;
 
-import com.savt.listopia.exception.APIException;
+import com.savt.listopia.exception.ResourceNotFoundException;
 import com.savt.listopia.exception.userException.UserException;
 import com.savt.listopia.exception.userException.UserNotAuthorizedException;
 import com.savt.listopia.exception.userException.UserNotFoundException;
@@ -159,8 +159,8 @@ public class UserServiceImpl implements UserService {
 
     @Transactional
     public void UserFriendRequest(Long requestOwnerUserId, UUID requestedUserUuid) {
-        User requester = userRepository.getReferenceById(requestOwnerUserId);
-        User requested = userRepository.getReferenceByUuid(requestedUserUuid);
+        User requester = userRepository.findById(requestOwnerUserId).orElseThrow(UserNotFoundException::new);
+        User requested = userRepository.findByUuid(requestedUserUuid).orElseThrow(UserNotFoundException::new);
         if (Objects.equals(requester.getId(), requested.getId()))
             return;
         requested.getFriendRequests().add(requester);
@@ -169,8 +169,8 @@ public class UserServiceImpl implements UserService {
 
     @Transactional
     public void AcceptFriend(Long accepterId, UUID acceptedUUID) {
-        User accepter = userRepository.findById(accepterId).orElseThrow();
-        User accepted = userRepository.getReferenceByUuid(acceptedUUID);
+        User accepter = userRepository.findById(accepterId).orElseThrow(UserNotFoundException::new);
+        User accepted = userRepository.findByUuid(acceptedUUID).orElseThrow(UserNotFoundException::new);
         if ( accepter.getFriendRequests().contains(accepted) ) {
             MakeFriends( accepter.getId(), accepted.getId() );
             accepter.getFriendRequests().remove( accepted );
@@ -180,7 +180,7 @@ public class UserServiceImpl implements UserService {
 
     @Transactional
     public List<UserDTO> UserFriendRequests(Long userId) {
-        User user = userRepository.findById(userId).orElseThrow();
+        User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
         return user.getFriendRequests().stream().map(
                 requestUser -> modelMapper.map(requestUser, UserDTO.class)
         ).toList();
@@ -207,9 +207,9 @@ public class UserServiceImpl implements UserService {
     public void sendMessage(Long fromId, Long toId, String messageUnsafe) {
         PrivateMessage message = new PrivateMessage();
         // message.setFromUserId(fromId);
-        message.setFromUser( userRepository.findById(fromId).orElseThrow() );
+        message.setFromUser( userRepository.findById(fromId).orElseThrow(UserNotFoundException::new) );
         // message.setToUserId(toId);
-        message.setToUser( userRepository.findById(toId).orElseThrow() );
+        message.setToUser( userRepository.findById(toId).orElseThrow(UserNotFoundException::new) );
         message.setSentAtTimestampSeconds(Instant.now().getEpochSecond());
         // @todo: use Apache Commons?
         message.setMessage(HtmlUtils.htmlEscape(messageUnsafe));
@@ -218,13 +218,13 @@ public class UserServiceImpl implements UserService {
 
     @Transactional
     public void markPrivateMessageReported(Long messageId) {
-        PrivateMessage msg = privateMessageRepository.getReferenceById(messageId);
+        PrivateMessage msg = privateMessageRepository.findById(messageId).orElseThrow(ResourceNotFoundException::new);
         msg.setIsReported(true);
         privateMessageRepository.save(msg);
     }
 
     public Boolean isPrivateMessageReported(Long messageId) {
-        return privateMessageRepository.findPrivateMessageById(messageId).orElseThrow().getIsReported();
+        return privateMessageRepository.findPrivateMessageById(messageId).orElseThrow(ResourceNotFoundException::new).getIsReported();
     }
 
     public Page<PrivateMessageDTO> getAllReportedMessages(int page, int size) {
@@ -280,9 +280,9 @@ public class UserServiceImpl implements UserService {
     }
 
     @Transactional
-    public void createMovieComment(Long userId, Integer movieId, Boolean isSpoiler, String messageUnsafe) {
-        User commented = userRepository.getReferenceById(userId);
-        Movie movie = movieRepository.findById(movieId).orElseThrow();
+    public MovieCommentDTO createMovieComment(Long userId, Integer movieId, Boolean isSpoiler, String messageUnsafe) {
+        User commented = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
+        Movie movie = movieRepository.findById(movieId).orElseThrow(ResourceNotFoundException::new);
 
         MovieComment comment = new MovieComment();
         comment.setMovie(movie);
@@ -292,15 +292,46 @@ public class UserServiceImpl implements UserService {
         comment.setMessage(HtmlUtils.htmlEscape(messageUnsafe));
 
         movieCommentRepository.save(comment);
+
+        return movieCommentToDTO(comment);
     }
 
     @Transactional
-    public void deleteMovieComment(Long commentId) {
-        movieCommentRepository.deleteById(commentId);
+    public void deleteMovieComment(Long requestedId, Long commentId) {
+        User user = userRepository.findById(requestedId).orElseThrow(UserNotAuthorizedException::new);
+        MovieComment comment = movieCommentRepository.findById(commentId).orElseThrow(ResourceNotFoundException::new);
+        if ( comment.getFromUser().equals(user) )
+            movieCommentRepository.deleteById(commentId);
+        else
+            throw new UserNotAuthorizedException();
+    }
+
+    @Override
+    public void reportMovieComment(Long commentId) {
+        Optional<MovieComment> commentOpt = movieCommentRepository.findById(commentId);
+        if ( commentOpt.isPresent() ) {
+            MovieComment comment = commentOpt.get();
+            comment.setIsReported(true);
+            movieCommentRepository.save(comment);
+        }
+    }
+
+    @Override
+    public MovieCommentDTO updateMovieComment(Long userId, Long commentId, Boolean isSpoiler, String messageUnsafe) {
+        User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
+        MovieComment comment = movieCommentRepository.findById(commentId).orElseThrow(ResourceNotFoundException::new);
+
+        if (!comment.getFromUser().equals(user))
+            throw new UserNotAuthorizedException();
+
+        comment.setIsSpoiler(isSpoiler);
+        comment.setMessage(HtmlUtils.htmlEscape(messageUnsafe));
+        movieCommentRepository.save(comment);
+        return movieCommentToDTO(comment);
     }
 
     public MovieCommentDTO getMovieCommentById(Long commentId) {
-        return movieCommentToDTO(movieCommentRepository.findById(commentId).orElseThrow());
+        return movieCommentToDTO(movieCommentRepository.findById(commentId).orElseThrow(ResourceNotFoundException::new));
     }
 
     public Page<MovieCommentDTO> getMovieCommentForMovie(Integer movieId, int page, int size) {

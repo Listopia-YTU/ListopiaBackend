@@ -1,24 +1,34 @@
 package com.savt.listopia.controller;
 
 import com.savt.listopia.config.AppConstants;
+import com.savt.listopia.payload.APIResponse;
+import com.savt.listopia.payload.dto.MovieCommentDTO;
 import com.savt.listopia.payload.dto.MovieDTO;
 import com.savt.listopia.payload.dto.MovieTranslationDTO;
 import com.savt.listopia.payload.response.MovieFrontResponse;
-import com.savt.listopia.payload.response.MovieResponse;
 import com.savt.listopia.service.MovieService;
+import com.savt.listopia.service.UserService;
 import jakarta.validation.constraints.Max;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+import java.util.UUID;
+
 @RestController
 @RequestMapping("/api")
 @Validated
 public class MovieController {
-    @Autowired
-    private MovieService movieService;
+    private final MovieService movieService;
+    private final UserService userService;
+
+    public MovieController(MovieService movieService, UserService userService) {
+        this.movieService = movieService;
+        this.userService = userService;
+    }
 
     @GetMapping("/movies/{movieId}")
     public ResponseEntity<MovieDTO> getMovie(@PathVariable Integer movieId,
@@ -78,5 +88,68 @@ public class MovieController {
         return new ResponseEntity<>(fetchedMovieDTO, HttpStatus.OK);
     }
 
+    @PostMapping("/movies/{movieId}/comment")
+    public ResponseEntity<MovieCommentDTO> commentMovie(
+            @PathVariable Integer movieId,
+            @RequestParam(name = "message") String message,
+            @RequestParam(name = "isSpoiler", required = false) Boolean isSpoiler
+    ) {
+        Long userId = userService.getCurrentUserIdOrThrow();
+        MovieCommentDTO dto = userService.createMovieComment(userId, movieId, isSpoiler, message);
+        return ResponseEntity.ok(dto);
+    }
+
+    @GetMapping("/movies/{movieId}/comment")
+    public ResponseEntity<List<MovieCommentDTO>> getMovieComments(
+            @PathVariable Integer movieId,
+            @RequestParam(name = "pageNumber", defaultValue = AppConstants.PAGE_NUMBER, required = false) Integer pageNumber,
+            @Max(50) @RequestParam(name = "pageSize", defaultValue = AppConstants.PAGE_SIZE, required = false) Integer pageSize,
+            @RequestParam(name = "fromUser", defaultValue = "", required = false) String fromUser
+    ) {
+        Page<MovieCommentDTO> dto;
+        if ( fromUser.isEmpty() ) {
+            dto = userService.getMovieCommentForMovie(movieId,pageNumber,pageSize);
+        } else {
+            Long userId = userService.getUserIdFromUUID(UUID.fromString(fromUser));
+            dto = userService.getMovieCommentForMovieFromUser(movieId, userId, pageNumber, pageSize);
+        }
+        return ResponseEntity.ok(dto.toList());
+    }
+
+    @PostMapping("/movies/comment/{commentId}/report")
+    public ResponseEntity<APIResponse> reportMessage(
+            @PathVariable Long commentId
+    ) {
+        userService.reportMovieComment(commentId);
+        return ResponseEntity.ok(APIResponse.builder().success(true).message("movie_comment_reported").build());
+    }
+
+    @PostMapping("/movies/comment/{commentId}")
+    public ResponseEntity<MovieCommentDTO> changeComment(
+            @PathVariable Long commentId,
+            @RequestParam(name = "message") String message,
+            @RequestParam(name = "isSpoiler", required = false) Boolean isSpoiler
+    ) {
+        Long userId = userService.getCurrentUserIdOrThrow();
+        MovieCommentDTO dto = userService.updateMovieComment(userId, commentId, isSpoiler, message);
+        return ResponseEntity.ok(dto);
+    }
+
+    @DeleteMapping("/movies/comment/{commentId}")
+    public ResponseEntity<APIResponse> deleteComment(
+            @PathVariable Long commentId
+    ) {
+        Long userId = userService.getCurrentUserIdOrThrow();
+        userService.deleteMovieComment(userId, commentId);
+        return ResponseEntity.ok(APIResponse.builder().success(true).message("movie_comment_deleted").build());
+    }
+
+    @GetMapping("/movies/comment/{commentId}")
+    public ResponseEntity<MovieCommentDTO> getMovieComment(
+            @PathVariable Long commentId
+    ) {
+        MovieCommentDTO dto = userService.getMovieCommentById(commentId);
+        return ResponseEntity.ok(dto);
+    }
 
 }
