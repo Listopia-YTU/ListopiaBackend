@@ -59,9 +59,13 @@ public interface UserService {
 
     MovieCommentDTO movieCommentToDTO(MovieComment comment);
     @Transactional
-    void createMovieComment(Long userId, Integer movieId, Boolean isSpoiler, String messageUnsafe);
+    MovieCommentDTO createMovieComment(Long userId, Integer movieId, Boolean isSpoiler, String messageUnsafe);
     @Transactional
-    void deleteMovieComment(Long commentId);
+    void deleteMovieComment(Long requestedId, Long commentId);
+    @Transactional
+    void reportMovieComment(Long commentId);
+    @Transactional
+    MovieCommentDTO updateMovieComment(Long userId, Long commentId, Boolean isSpoiler, String messageUnsafe);
     MovieCommentDTO getMovieCommentById(Long commentId);
     Page<MovieCommentDTO> getMovieCommentForMovie(Integer movieId, int page, int size);
     Page<MovieCommentDTO> getMovieCommentFromUser(Long userId, int page, int size);

@@ -94,7 +94,7 @@ public class UserRunner implements CommandLineRunner {
         LOGGER.info("MovieComment - getMovieCommentForMovieFromUser: {}", userService.getMovieCommentForMovieFromUser(movie1.getMovieId(), user1.getId(), page, size).getContent());
         LOGGER.info("MovieComment - getMovieCommentIsReported: {}", userService.getMovieCommentReported(false, page, size).getContent());
 
-        userService.deleteMovieComment(1L);
+        // userService.deleteMovieComment(1L);
         // crash :( çünkü yok hahaha :)
         // LOGGER.info("MovieComment - getMovieCommentById (after deleted): {}", userService.getMovieCommentById(1L));
     }
