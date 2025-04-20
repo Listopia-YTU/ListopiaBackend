@@ -1,6 +1,5 @@
 package com.savt.listopia.service;
 
-import com.savt.listopia.exception.APIException;
 import com.savt.listopia.exception.ResourceNotFoundException;
 import com.savt.listopia.exception.userException.UserException;
 import com.savt.listopia.exception.userException.UserNotAuthorizedException;
@@ -36,8 +35,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.util.HtmlUtils;
-
-import javax.xml.stream.events.Comment;
 
 @Service
 public class UserServiceImpl implements UserService {
