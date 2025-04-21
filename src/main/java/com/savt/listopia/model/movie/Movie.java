@@ -21,6 +21,8 @@ public class Movie {
     @Id
     private Integer movieId;
 
+    private Long clickCount = 0L;
+
     private String originalLanguage;
 
     private String originalTitle;
