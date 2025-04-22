@@ -86,10 +86,7 @@ public class UserServiceImpl implements UserService {
         Optional<User> userOpt = userRepository.findByEmail(email);
 
         if (userOpt.isEmpty()) {
-            // time based attack vector!
-            // do not remove verify password code bellow!!!
-            PasswordUtil.verifyPassword("enteredPassword", "user.getHashedPassword()");
-            throw new UserNotFoundException("mail_does_not_exists");
+            throw new UserNotFoundException("mail_not_found");
         }
 
         User user = userOpt.get();
@@ -97,7 +94,7 @@ public class UserServiceImpl implements UserService {
         if (verifyUserPassword(user, plainPassword))
             return user;
 
-        throw new UserNotFoundException("mail_does_not_exists");
+        throw new UserNotAuthorizedException("password_not_correct");
     }
 
     public boolean verifyUserPassword(User user, String enteredPassword) {
