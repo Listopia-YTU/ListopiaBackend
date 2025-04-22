@@ -27,6 +27,13 @@ public class UserController {
         this.userService = userService;
     }
 
+    @GetMapping("/{username}")
+    public ResponseEntity<UserDTO> getUser(@PathVariable String username) {
+        LOGGER.info("getUser: {}", username);
+        UserDTO dto = userService.getUserByUsername(username);
+        return ResponseEntity.ok(dto);
+    }
+
     @PostMapping("/change_username")
     public ResponseEntity<?> ChangeUsername(@Valid @RequestBody ChangeUsernameRequest changeUsernameRequest) {
         Long userId = userService.getCurrentUserIdOrThrow();
