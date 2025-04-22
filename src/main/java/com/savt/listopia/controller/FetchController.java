@@ -34,7 +34,7 @@ public class FetchController {
 
     @PostMapping("/fetch/movies")
     public ResponseEntity<String> fetchMovies(@Min(1) @RequestParam(name = "startId", defaultValue = "1", required = false) Integer startId,
-                                              @Max(1000) @RequestParam(name = "endId", defaultValue = "100", required = false) Integer endId,
+                                              @Max(1000001) @RequestParam(name = "endId", defaultValue = "100", required = false) Integer endId,
                                               @Min(0) @RequestParam(name = "minPopularity", defaultValue = "20", required = false) Integer minPopularity,
                                               @RequestParam(name = "fetchAllImages", defaultValue = "false", required = false) Boolean fetchAllImages,
                                               @RequestParam(name = "fetchKeywords", defaultValue = "false", required = false) Boolean fetchKeywords) {
