@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 public interface UserService {
+    UserDTO getUserByUsername(String username);
     User registerUser(String firstname, String lastName, String email, String username, String plainPassword);
     User getUserByEmailPassword(String email, String plainPassword);
     boolean verifyUserPassword(User user, String enteredPassword);

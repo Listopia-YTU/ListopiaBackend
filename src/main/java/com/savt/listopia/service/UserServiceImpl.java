@@ -52,6 +52,12 @@ public class UserServiceImpl implements UserService {
         this.movieCommentRepository = movieCommentRepository;
     }
 
+    @Override
+    public UserDTO getUserByUsername(String username) {
+        User user = userRepository.findByUsername(username).orElseThrow(UserNotFoundException::new);
+        return modelMapper.map(user, UserDTO.class);
+    }
+
     public User registerUser(String firstname, String lastName, String email, String username, String plainPassword) {
         if (userRepository.existsByUsername(username))
             return null;
