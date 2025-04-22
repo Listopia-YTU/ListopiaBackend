@@ -1,5 +1,6 @@
 package com.savt.listopia.service;
 
+import com.savt.listopia.exception.APIException;
 import com.savt.listopia.exception.ResourceNotFoundException;
 import com.savt.listopia.exception.userException.UserException;
 import com.savt.listopia.exception.userException.UserNotAuthorizedException;
@@ -44,6 +45,10 @@ public class UserServiceImpl implements UserService {
     private final MovieRepository movieRepository;
     private final MovieCommentRepository movieCommentRepository;
 
+    String HTMLEscape(String input) {
+        return HtmlUtils.htmlEscape(input);
+    }
+
     public UserServiceImpl(UserRepository userRepository, ModelMapper modelMapper, PrivateMessageRepository privateMessageRepository, MovieRepository movieRepository, MovieCommentRepository movieCommentRepository) {
         this.userRepository = userRepository;
         this.modelMapper = modelMapper;
@@ -60,16 +65,16 @@ public class UserServiceImpl implements UserService {
 
     public User registerUser(String firstname, String lastName, String email, String username, String plainPassword) {
         if (userRepository.existsByUsername(username))
-            return null;
+            throw new APIException("username_already_exists");
 
         if (userRepository.existsByEmail(email))
-            return null;
+            throw new APIException("email_already_exists");
 
         String hashedPassword = PasswordUtil.hashPassword(plainPassword);
         User user = new User();
         user.setEmail(email);
-        user.setFirstName(firstname);
-        user.setLastName(lastName);
+        user.setFirstName(HTMLEscape(firstname));
+        user.setLastName(HTMLEscape(lastName));
         user.setUsername(username);
         user.setHashedPassword(hashedPassword);
 
@@ -78,8 +83,17 @@ public class UserServiceImpl implements UserService {
     }
 
     public User getUserByEmailPassword(String email, String plainPassword) {
-        User user = userRepository.findByEmail(email).orElseThrow( () -> new UserNotFoundException("mail_does_not_exists") );
-        // @todo: handle time based mail enumeration attack
+        Optional<User> userOpt = userRepository.findByEmail(email);
+
+        if (userOpt.isEmpty()) {
+            // time based attack vector!
+            // do not remove verify password code bellow!!!
+            PasswordUtil.verifyPassword("enteredPassword", "user.getHashedPassword()");
+            throw new UserNotFoundException("mail_does_not_exists");
+        }
+
+        User user = userOpt.get();
+
         if (verifyUserPassword(user, plainPassword))
             return user;
 

@@ -87,4 +87,9 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(403).body(APIResponse.builder().success(false).message(e.getMessage()).build());
     }
 
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<APIResponse> IllegalArgumentExceptionHandle(IllegalArgumentException e) {
+        return ResponseEntity.status(400).body(APIResponse.builder().success(false).message("illegal_argument").build());
+    }
+
 }

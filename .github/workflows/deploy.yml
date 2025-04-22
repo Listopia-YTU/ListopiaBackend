@@ -1,0 +1,49 @@
+name: CI/CD for Spring Boot App
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v3
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Build with Maven
+        run: mvn clean package -DskipTests
+
+      - name: Build Docker image
+        run: docker build -f deploy/Dockerfile -t listopia-app .
+
+      - name: Save Docker image to tar file
+        run: docker save listopia-app -o listopia-app.tar
+
+      - name: Copy Docker image to remote server
+        uses: appleboy/scp-action@v0.1.4
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          source: "listopia-app.tar"
+          target: "~/app/"
+
+      - name: Deploy on remote server
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script: |
+            docker load -i ~/app/listopia-app.tar
+            docker stop listopia-app || true
+            docker rm listopia-app || true
+            docker run -d --name listopia-app -p 8080:8080 listopia-app

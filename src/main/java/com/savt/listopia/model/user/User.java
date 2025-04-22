@@ -4,6 +4,8 @@ import com.savt.listopia.model.movie.Movie;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import jakarta.annotation.Nullable;
 import jakarta.persistence.*;
 import java.util.UUID;
 import lombok.Data;
@@ -24,6 +26,10 @@ public class User {
 
     String email;
     String hashedPassword;
+
+    @Nullable
+    @Enumerated(EnumType.STRING)
+    private UserRole role;
 
     @ManyToMany
     @JoinTable(
