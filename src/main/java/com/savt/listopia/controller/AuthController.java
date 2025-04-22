@@ -2,6 +2,7 @@ package com.savt.listopia.controller;
 
 import com.savt.listopia.model.user.Session;
 import com.savt.listopia.model.user.User;
+import com.savt.listopia.payload.APIResponse;
 import com.savt.listopia.security.request.SignInRequestBody;
 import com.savt.listopia.security.request.SignUpRequestBody;
 import com.savt.listopia.service.SessionService;
@@ -13,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -25,41 +27,35 @@ public class AuthController {
     SessionService sessionService;
 
     @PostMapping("/signup")
-    public ResponseEntity<?> signUp(@Valid @RequestBody SignUpRequestBody signUpRequest, HttpServletResponse response) {
+    public ResponseEntity<APIResponse> signUp(@Valid @RequestBody SignUpRequestBody signUpRequest, HttpServletResponse response) {
         User user = userService.registerUser(
             signUpRequest.getFirstName(),
             signUpRequest.getLastName(),
             signUpRequest.getEmail(),
             signUpRequest.getUsername(),
-            signUpRequest.getPassword());
+            signUpRequest.getPassword()
+        );
 
-        if (user != null) {
-            Session userSession = sessionService.createSession(user);
-            Cookie sessionCookie = sessionService.createCookie(userSession);
-            response.addCookie(sessionCookie);
-            return ResponseEntity.ok().build();
-        } else
-            return ResponseEntity.status(401).build(); // TODO: better response
+        Session userSession = sessionService.createSession(user);
+        Cookie sessionCookie = sessionService.createCookie(userSession);
+        response.addCookie(sessionCookie);
+        return ResponseEntity.ok(APIResponse.builder().success(true).message("user_created").build());
     }
 
     @PostMapping("/signin")
-    public ResponseEntity<?> signIn(@Valid @RequestBody SignInRequestBody signInRequest, HttpServletResponse response) {
+    public ResponseEntity<APIResponse> signIn(@Valid @RequestBody SignInRequestBody signInRequest, HttpServletResponse response) {
         User user = userService.getUserByEmailPassword(
             signInRequest.getEmail(),
             signInRequest.getPassword());
 
-        if (user != null) {
-            Session userSession = sessionService.createSession(user);
-            Cookie sessionCookie = sessionService.createCookie(userSession);
-            response.addCookie(sessionCookie);
-            return ResponseEntity.ok().build();
-        } else {
-            return ResponseEntity.status(403).build();
-        }
+        Session userSession = sessionService.createSession(user);
+        Cookie sessionCookie = sessionService.createCookie(userSession);
+        response.addCookie(sessionCookie);
+        return ResponseEntity.ok(APIResponse.builder().success(true).message("logged_in").build());
     }
 
     @PostMapping("/signout")
-    public ResponseEntity<?> signOut(HttpServletResponse response) {
+    public ResponseEntity<APIResponse> signOut(HttpServletResponse response) {
         Session session1 = sessionService.getCurrentSession();
         sessionService.deleteSession(session1);
 
@@ -68,7 +64,9 @@ public class AuthController {
         deleteCookie.setPath("/");
         response.addCookie(deleteCookie);
 
-        return ResponseEntity.ok().build();
+        SecurityContextHolder.getContext().setAuthentication(null);
+
+        return ResponseEntity.ok(APIResponse.builder().success(true).message("logged_out").build());
     }
 
 }
