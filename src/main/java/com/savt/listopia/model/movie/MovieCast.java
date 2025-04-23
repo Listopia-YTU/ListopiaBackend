@@ -2,6 +2,7 @@ package com.savt.listopia.model.movie;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.savt.listopia.model.people.Person;
+import jakarta.annotation.Nullable;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -21,11 +22,13 @@ public class MovieCast {
 
     private Double popularity;
 
+    @Nullable
     private String profilePath;
 
     @Column(columnDefinition = "TEXT", length = 512)
     private String character;
 
+    @Nullable
     @ManyToOne
     @JoinColumn(name = "person_id")
     private Person person;
