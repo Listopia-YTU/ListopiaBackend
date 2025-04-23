@@ -268,11 +268,10 @@ public class FetchUtil {
                 movie.setKeywords(keywords);
             }
 
-            try {
-                String trailerKey = movieDb.getVideos().getResults().getFirst().getKey();
+            String trailerKey = movieDb.getVideos().getResults().getFirst().getKey();
+            if (trailerKey != null){
                 movie.setTrailerKey(trailerKey);
                 movie.setTrailerLink("https://www.youtube.com/watch?v=" + trailerKey);
-            } catch (Exception e) {
             }
 
             try {
@@ -385,7 +384,6 @@ public class FetchUtil {
             List<PersonTranslation> personTranslations = new ArrayList<>();
 
             for (info.movito.themoviedbapi.model.people.Translation translation : translations) {
-                info.movito.themoviedbapi.model.people.Data data = translation.getData();
                 PersonTranslation personTranslation = new PersonTranslation();
                 personTranslation.setBiography(translation.getData().getBiography());
                 personTranslation.setLanguage(translation.getIso6391());
@@ -419,12 +417,12 @@ public class FetchUtil {
                 if (movieCast != null) {
                     movieCast.setPerson(person);
                     movieCasts.add(movieCast);
+                    person.getMovieCasts().add(movieCast);
                 }
             }
 
             List<info.movito.themoviedbapi.model.people.credits.MovieCrew> movieCrewsOfPerson =
                     personDb.getMovieCredits().getCrew();
-
 
             List<MovieCrew> movieCrews = new ArrayList<>();
 
@@ -434,12 +432,16 @@ public class FetchUtil {
                 if (movieCrew != null) {
                     movieCrew.setPerson(person);
                     movieCrews.add(movieCrew);
+                    person.getMovieCrews().add(movieCrew);
                 }
             }
 
-            personRepository.save(person);
-            movieCastRepository.saveAll(movieCasts);
-            movieCrewRepository.saveAll(movieCrews);
+            try {
+                personRepository.save(person);
+                movieCastRepository.saveAll(movieCasts);
+                movieCrewRepository.saveAll(movieCrews);
+            } catch (Exception e){
+            }
 
             if (downloadImages) {
                 downloadPersonProfiles(profiles);
