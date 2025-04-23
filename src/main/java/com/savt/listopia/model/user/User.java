@@ -18,13 +18,18 @@ public class User {
     @GeneratedValue
     Long id;
 
+    @Column(unique = true)
     UUID uuid = UUID.randomUUID();
 
+    @Column(unique = true)
     String username;
+
     String firstName;
     String lastName;
 
+    @Column(unique = true)
     String email;
+
     String hashedPassword;
 
     @Nullable
