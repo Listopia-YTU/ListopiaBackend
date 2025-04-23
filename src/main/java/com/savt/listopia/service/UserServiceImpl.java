@@ -25,13 +25,12 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.*;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -45,8 +44,16 @@ public class UserServiceImpl implements UserService {
     private final MovieRepository movieRepository;
     private final MovieCommentRepository movieCommentRepository;
 
-    String HTMLEscape(String input) {
+    static String HTMLEscape(String input) {
         return HtmlUtils.htmlEscape(input);
+    }
+
+    public static <D, T> Page<D> mapEntityPageToDtoPage(Page<T> entities, Class<D> dtoClass, ModelMapper mapper) {
+        List<D> dtoList = entities.getContent().stream()
+                .map(entity -> mapper.map(entity, dtoClass))
+                .collect(Collectors.toList());
+
+        return new PageImpl<>(dtoList, entities.getPageable(), entities.getTotalElements());
     }
 
     public UserServiceImpl(UserRepository userRepository, ModelMapper modelMapper, PrivateMessageRepository privateMessageRepository, MovieRepository movieRepository, MovieCommentRepository movieCommentRepository) {
@@ -78,7 +85,12 @@ public class UserServiceImpl implements UserService {
         user.setUsername(username);
         user.setHashedPassword(hashedPassword);
 
-        userRepository.save(user);
+        try {
+            userRepository.save(user);
+        } catch (DataIntegrityViolationException e) {
+            throw new APIException("username_or_email_already_exists");
+        }
+
         return user;
     }
 
@@ -147,21 +159,29 @@ public class UserServiceImpl implements UserService {
     }
 
     @Transactional
-    public List<MovieFrontDTO> getUserLikedMovies(Long userId) {
-        List<Movie> movies = userRepository.findLikedMoviesByUserId(userId);
-        return movies.stream().map(
-                movie -> modelMapper.map(movie, MovieFrontDTO.class)
-        ).toList();
+    public Page<MovieFrontDTO> getUserLikedMovies(Long userId, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Movie> movies = userRepository.findLikedMoviesByUserId(userId, pageable);
+        return mapEntityPageToDtoPage(movies, MovieFrontDTO.class, modelMapper);
     }
 
     @Transactional
     public void likeMovie(Long userId, Movie movie, Boolean liked) {
-        User user = userRepository.findById(userId).orElseThrow();
-        if ( liked )
-            user.getLikedMovies().add(movie);
-        else
+        User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
+
+        if (movie == null || !movieRepository.existsById(movie.getMovieId())) {
+            throw new APIException("movie_not_found");
+        }
+
+        if (liked) {
+            if (!user.getLikedMovies().contains(movie)) {
+                user.getLikedMovies().add(movie);
+                userRepository.save(user);
+            }
+        } else {
             user.getLikedMovies().remove(movie);
-        userRepository.save(user);
+            userRepository.save(user);
+        }
     }
 
     @Transactional
@@ -196,19 +216,17 @@ public class UserServiceImpl implements UserService {
     }
 
     @Transactional
-    public List<UserDTO> UserFriendRequests(Long userId) {
-        User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
-        return user.getFriendRequests().stream().map(
-                requestUser -> modelMapper.map(requestUser, UserDTO.class)
-        ).toList();
+    public Page<UserDTO> UserFriendRequests(Long userId, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<User> users = userRepository.findFriendRequestsByUserId(userId, pageable);
+        return mapEntityPageToDtoPage(users, UserDTO.class, modelMapper);
     }
 
     @Transactional
-    public List<UserDTO> UserFriends(Long userId) {
-        User user = userRepository.findById(userId).orElseThrow();
-        return user.getFriends().stream().map(
-                friend -> modelMapper.map(friend, UserDTO.class)
-        ).toList();
+    public Page<UserDTO> UserFriends(Long userId, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<User> userPage = userRepository.findFriendsByUserId(userId, pageable);
+        return mapEntityPageToDtoPage(userPage, UserDTO.class, modelMapper);
     }
 
     @Override

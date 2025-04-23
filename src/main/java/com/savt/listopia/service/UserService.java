@@ -8,7 +8,6 @@ import com.savt.listopia.payload.dto.MovieFrontDTO;
 import com.savt.listopia.payload.dto.PrivateMessageDTO;
 import com.savt.listopia.payload.dto.UserDTO;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -30,7 +29,7 @@ public interface UserService {
     Long getUserIdFromUUID(UUID uuid);
 
     @Transactional
-    List<MovieFrontDTO> getUserLikedMovies(Long userId);
+    Page<MovieFrontDTO> getUserLikedMovies(Long userId, int page, int size);
     @Transactional
     void likeMovie(Long userId, Movie movie, Boolean liked);
 
@@ -41,9 +40,9 @@ public interface UserService {
     @Transactional
     void AcceptFriend(Long accepterId, UUID acceptedUUID);
     @Transactional
-    List<UserDTO> UserFriendRequests(Long userId);
+    Page<UserDTO> UserFriendRequests(Long userId, int page, int size);
     @Transactional
-    List<UserDTO> UserFriends(Long userId);
+    Page<UserDTO> UserFriends(Long userId, int page, int size);
 
     @Transactional
     void userReportMessage(Long userId, Long messageId);
