@@ -4,6 +4,7 @@ import com.savt.listopia.model.core.image.PersonImage;
 import com.savt.listopia.model.movie.MovieCast;
 import com.savt.listopia.model.movie.MovieCrew;
 import com.savt.listopia.model.translation.PersonTranslation;
+import jakarta.annotation.Nullable;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -28,6 +29,7 @@ public class Person {
 
     private String birthday;
 
+    @Nullable
     private String deathDay;
 
     private String placeOfBirth;
@@ -38,6 +40,7 @@ public class Person {
 
     private String knownForDepartment;
 
+    @Nullable
     private String profilePath;
 
     @OneToMany(mappedBy = "person", cascade = {CascadeType.MERGE, CascadeType.PERSIST}, orphanRemoval = true)
