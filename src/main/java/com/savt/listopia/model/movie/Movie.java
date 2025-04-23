@@ -5,7 +5,9 @@ import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.savt.listopia.model.core.Genre;
 import com.savt.listopia.model.core.image.MovieImage;
 import com.savt.listopia.model.translation.MovieTranslation;
+import jakarta.annotation.Nullable;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -57,14 +59,19 @@ public class Movie {
 
     //
 
+    @NotNull
     private String imdbId;
 
+    @Nullable
     private String wikidataId;
 
+    @Nullable
     private String facebookId;
 
+    @Nullable
     private String instagramId;
 
+    @Nullable
     private String twitterId;
 
     @OneToMany(mappedBy = "movie", cascade = {CascadeType.MERGE, CascadeType.PERSIST}, orphanRemoval = true)
@@ -91,5 +98,4 @@ public class Movie {
 
     @OneToMany(mappedBy = "movie", cascade = {CascadeType.MERGE, CascadeType.PERSIST}, orphanRemoval = true)
     private List<MovieTranslation> translations;
-
 }
