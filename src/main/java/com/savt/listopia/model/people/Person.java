@@ -1,5 +1,6 @@
 package com.savt.listopia.model.people;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.savt.listopia.model.core.image.PersonImage;
 import com.savt.listopia.model.movie.MovieCast;
 import com.savt.listopia.model.movie.MovieCrew;
@@ -27,11 +28,13 @@ public class Person {
 
     private String name;
 
+    @Nullable
     private String birthday;
 
     @Nullable
     private String deathDay;
 
+    @Nullable
     private String placeOfBirth;
 
     private Double popularity;
@@ -48,4 +51,12 @@ public class Person {
 
     @OneToMany(mappedBy = "person", cascade = {CascadeType.MERGE, CascadeType.PERSIST}, orphanRemoval = true)
     private List<PersonImage> profiles = new ArrayList<>();
+
+    @JsonManagedReference
+    @OneToMany(mappedBy = "person", cascade = {CascadeType.MERGE, CascadeType.PERSIST}, orphanRemoval = true)
+    private List<MovieCast> movieCasts = new ArrayList<>();
+
+    @JsonManagedReference
+    @OneToMany(mappedBy = "person", cascade = {CascadeType.MERGE, CascadeType.PERSIST}, orphanRemoval = true)
+    private List<MovieCrew> movieCrews = new ArrayList<>();
 }
