@@ -99,6 +99,7 @@ public class PersonFetcher {
                     if (movieCast != null) {
                         movieCast.setPerson(person);
                         movieCasts.add(movieCast);
+                        person.getMovieCasts().add(movieCast);
                     }
                 }
 
@@ -114,12 +115,17 @@ public class PersonFetcher {
                     if (movieCrew != null) {
                         movieCrew.setPerson(person);
                         movieCrews.add(movieCrew);
+                        person.getMovieCrews().add(movieCrew);
                     }
                 }
 
-                personRepository.save(person);
-                movieCastRepository.saveAll(movieCasts);
-                movieCrewRepository.saveAll(movieCrews);
+                try {
+                    personRepository.save(person);
+                    movieCastRepository.saveAll(movieCasts);
+                    movieCrewRepository.saveAll(movieCrews);
+                }catch (Exception e){
+
+                }
 
 //                downloadImage(profiles);
 
