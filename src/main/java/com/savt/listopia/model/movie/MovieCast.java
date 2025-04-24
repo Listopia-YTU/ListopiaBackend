@@ -16,7 +16,7 @@ import lombok.NoArgsConstructor;
 public class MovieCast {
     @Id
     @JoinColumn(name = "cast_id")
-    private Integer castId;
+    private Integer id;
 
     private String originalName;
 

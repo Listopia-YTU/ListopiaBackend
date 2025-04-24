@@ -26,8 +26,6 @@ import info.movito.themoviedbapi.model.people.PersonImages;
 import info.movito.themoviedbapi.tools.TmdbException;
 import info.movito.themoviedbapi.tools.appendtoresponse.MovieAppendToResponse;
 import info.movito.themoviedbapi.tools.appendtoresponse.PersonAppendToResponse;
-import jakarta.transaction.Transactional;
-import org.hibernate.TransientObjectException;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -412,7 +410,7 @@ public class FetchUtil {
             List<MovieCast> movieCasts = new ArrayList<>();
 
             for (info.movito.themoviedbapi.model.people.credits.MovieCast mc : movieCastsOfPerson) {
-                MovieCast movieCast = movieCastRepository.getMovieCastByCastId(mc.getId());
+                MovieCast movieCast = movieCastRepository.getMovieCastById(mc.getId());
 
                 if (movieCast != null) {
                     movieCast.setPerson(person);
