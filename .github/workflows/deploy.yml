@@ -35,10 +35,4 @@ jobs:
             docker rm listopia-app || true
             docker rmi listopia-app || true
             docker build -f deploy/Dockerfile -t listopia-app . || true
-            docker run -d \
-              --name listopia-app \
-              -p 8080:8080 \
-              -e DB_URL=${{ secrets.DB_URL }} \
-              -e DB_USERNAME=${{ secrets.DB_USERNAME }} \
-              -e DB_PASSWORD=${{ secrets.DB_PASSWORD }} \
-              listopia-app
+            docker run -d --name listopia-app -p 8080:8080 -e DB_URL=${{ secrets.DB_URL }} -e DB_USERNAME=${{ secrets.DB_USERNAME }} -e DB_PASSWORD=${{ secrets.DB_PASSWORD }} listopia-app
