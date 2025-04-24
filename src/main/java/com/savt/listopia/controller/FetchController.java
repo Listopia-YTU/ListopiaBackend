@@ -44,7 +44,7 @@ public class FetchController {
 
     @PostMapping("/fetch/persons")
     public ResponseEntity<String> fetchPersons(@Min(1) @RequestParam(name = "startId", defaultValue = "1", required = false) Integer startId,
-                                               @Max(1000) @RequestParam(name = "endId", defaultValue = "100", required = false) Integer endId,
+                                               @Max(1000001) @RequestParam(name = "endId", defaultValue = "100", required = false) Integer endId,
                                                @RequestParam(name = "downloadImages", defaultValue = "false", required = false) Boolean downloadImages) throws IOException {
         fetchUtil.fetchPersons(startId, endId, downloadImages);
         return new ResponseEntity<>("Fetching persons is completed", HttpStatus.CREATED);
