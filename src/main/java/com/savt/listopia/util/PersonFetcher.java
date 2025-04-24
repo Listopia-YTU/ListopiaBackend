@@ -20,7 +20,6 @@ import info.movito.themoviedbapi.tools.appendtoresponse.PersonAppendToResponse;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import java.io.FileOutputStream;
@@ -94,7 +93,7 @@ public class PersonFetcher {
                 List<MovieCast> movieCasts = new ArrayList<>();
 
                 for (info.movito.themoviedbapi.model.people.credits.MovieCast mc : movieCastsOfPerson) {
-                    MovieCast movieCast = movieCastRepository.getMovieCastByCastId(mc.getId());
+                    MovieCast movieCast = movieCastRepository.getMovieCastById(mc.getId());
 
                     if (movieCast != null) {
                         movieCast.setPerson(person);
