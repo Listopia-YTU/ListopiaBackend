@@ -10,6 +10,7 @@ import com.savt.listopia.payload.APIResponse;
 import com.savt.listopia.payload.dto.MovieFrontDTO;
 import com.savt.listopia.payload.dto.PrivateMessageDTO;
 import com.savt.listopia.payload.dto.UserDTO;
+import com.savt.listopia.payload.request.UserUUID;
 import com.savt.listopia.repository.MovieRepository;
 import com.savt.listopia.security.request.ChangeUsernameRequest;
 import com.savt.listopia.security.request.MessageUserRequest;
@@ -60,16 +61,16 @@ public class UserController {
     }
 
     @PostMapping("/add_friend")
-    public ResponseEntity<APIResponse> AddFriend(@Valid @RequestBody UUID uuid) {
+    public ResponseEntity<APIResponse> AddFriend(@Valid @RequestBody UserUUID uuid) {
         Long userId = userService.getCurrentUserId().orElseThrow(UserNotFoundException::new);
-        userService.UserFriendRequest(userId, uuid);
+        userService.UserFriendRequest(userId, uuid.getUuid());
         return ResponseEntity.ok().build();
     }
 
     @PostMapping("accept_friend")
-    public ResponseEntity<APIResponse> AcceptFriend(@Valid @RequestBody UUID uuid) {
+    public ResponseEntity<APIResponse> AcceptFriend(@Valid @RequestBody UserUUID uuid) {
         Long userId = userService.getCurrentUserId().orElseThrow(UserNotFoundException::new);
-        userService.AcceptFriend(userId, uuid);
+        userService.AcceptFriend(userId, uuid.getUuid());
         return ResponseEntity.ok(APIResponse.builder().success(true).message("friend_added").build());
     }
 
@@ -142,27 +143,27 @@ public class UserController {
     }
 
     @GetMapping("/message/received")
-    public ResponseEntity<List<PrivateMessageDTO>> Received(
+    public ResponseEntity<Page<PrivateMessageDTO>> Received(
             @RequestParam(name = "pageNumber", defaultValue = AppConstants.PAGE_NUMBER, required = false) Integer pageNumber,
             @Max(50) @RequestParam(name = "pageSize", defaultValue = AppConstants.PAGE_SIZE, required = false) Integer pageSize
             ) {
         Long userId = userService.getCurrentUserIdOrThrow();
         Page<PrivateMessageDTO> messages = userService.getAllMessagesOfUserReceived(userId, pageNumber, pageSize);
-        return ResponseEntity.ok(messages.getContent());
+        return ResponseEntity.ok(messages);
     }
 
     @GetMapping("/message/sent")
-    public ResponseEntity<List<PrivateMessageDTO>> Sent(
+    public ResponseEntity<Page<PrivateMessageDTO>> Sent(
             @RequestParam(name = "pageNumber", defaultValue = AppConstants.PAGE_NUMBER, required = false) Integer pageNumber,
             @Max(50) @RequestParam(name = "pageSize", defaultValue = AppConstants.PAGE_SIZE, required = false) Integer pageSize
     ) {
         Long userId = userService.getCurrentUserIdOrThrow();
         Page<PrivateMessageDTO> messages = userService.getAllMessagesUserSent(userId, pageNumber, pageSize);
-        return ResponseEntity.ok(messages.getContent());
+        return ResponseEntity.ok(messages);
     }
 
     @GetMapping("/message/from/{userUuid}")
-    public ResponseEntity<List<PrivateMessageDTO>> MessagesFromUser(
+    public ResponseEntity<Page<PrivateMessageDTO>> MessagesFromUser(
             @PathVariable String userUuid,
             @RequestParam(name = "pageNumber", defaultValue = AppConstants.PAGE_NUMBER, required = false) Integer pageNumber,
             @Max(50) @RequestParam(name = "pageSize", defaultValue = AppConstants.PAGE_SIZE, required = false) Integer pageSize
@@ -174,11 +175,11 @@ public class UserController {
                 pageNumber,
                 pageSize
         );
-        return ResponseEntity.ok(messageDTOS.getContent());
+        return ResponseEntity.ok(messageDTOS);
     }
 
     @GetMapping("/message/to/{userUuid}")
-    public ResponseEntity<List<PrivateMessageDTO>> MessagesToUser(
+    public ResponseEntity<Page<PrivateMessageDTO>> MessagesToUser(
             @PathVariable String userUuid,
             @RequestParam(name = "pageNumber", defaultValue = AppConstants.PAGE_NUMBER, required = false) Integer pageNumber,
             @Max(50) @RequestParam(name = "pageSize", defaultValue = AppConstants.PAGE_SIZE, required = false) Integer pageSize
@@ -190,7 +191,7 @@ public class UserController {
                 pageNumber,
                 pageSize
         );
-        return ResponseEntity.ok(messageDTOS.getContent());
+        return ResponseEntity.ok(messageDTOS);
     }
 
 }
