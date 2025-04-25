@@ -13,6 +13,8 @@ import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
@@ -37,8 +39,8 @@ public class AuthController {
         );
 
         Session userSession = sessionService.createSession(user);
-        Cookie sessionCookie = sessionService.createCookie(userSession);
-        response.addCookie(sessionCookie);
+        ResponseCookie sessionCookie = sessionService.createCookie(userSession);
+        response.setHeader(HttpHeaders.SET_COOKIE, sessionCookie.toString());
         return ResponseEntity.ok(APIResponse.builder().success(true).message("user_created").build());
     }
 
@@ -49,8 +51,8 @@ public class AuthController {
             signInRequest.getPassword());
 
         Session userSession = sessionService.createSession(user);
-        Cookie sessionCookie = sessionService.createCookie(userSession);
-        response.addCookie(sessionCookie);
+        ResponseCookie sessionCookie = sessionService.createCookie(userSession);
+        response.setHeader(HttpHeaders.SET_COOKIE, sessionCookie.toString());
         return ResponseEntity.ok(APIResponse.builder().success(true).message("logged_in").build());
     }
 

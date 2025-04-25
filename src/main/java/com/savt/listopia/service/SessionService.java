@@ -4,9 +4,11 @@ import com.savt.listopia.model.user.Session;
 import com.savt.listopia.model.user.User;
 import com.savt.listopia.repository.SessionRepository;
 import com.savt.listopia.security.auth.AuthenticationToken;
-import jakarta.servlet.http.Cookie;
+
+import java.time.Duration;
 import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -33,14 +35,14 @@ public class SessionService {
         return session;
     }
 
-    public Cookie createCookie(Session session) {
-        Cookie cookie = new Cookie("_SESSION", session.getUuid().toString());
-
-        cookie.setSecure(true);
-        cookie.setHttpOnly(true);
-        cookie.setPath("/");
-
-        return cookie;
+    public ResponseCookie createCookie(Session session) {
+        return ResponseCookie.from("_SESSION", session.getUuid().toString())
+                .secure(true)
+                .httpOnly(true)
+                .path("/")
+                .sameSite("None")
+                .maxAge(Duration.ofDays(7))
+                .build();
     }
 
     public void deleteSession(Session session) {
