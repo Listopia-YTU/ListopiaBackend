@@ -62,9 +62,9 @@ public class UserController {
 
     @PostMapping("/add_friend")
     public ResponseEntity<APIResponse> AddFriend(@Valid @RequestBody UserUUID uuid) {
-        Long userId = userService.getCurrentUserId().orElseThrow(UserNotFoundException::new);
+        Long userId = userService.getCurrentUserId().orElseThrow(UserNotAuthorizedException::new);
         userService.UserFriendRequest(userId, uuid.getUuid());
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(APIResponse.builder().success(true).message("friend_request_sent").build());
     }
 
     @PostMapping("accept_friend")
