@@ -10,5 +10,6 @@ public class MovieCommentDTO {
     String userUUID;
     Integer movieId;
     Long sentAtTimestampSeconds;
+    Boolean isSpoiler;
     String message;
 }

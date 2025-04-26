@@ -309,6 +309,7 @@ public class UserServiceImpl implements UserService {
                 .userUUID(comment.getFromUser().getUuid().toString())
                 .movieId(comment.getMovie().getMovieId())
                 .message(comment.getMessage())
+                .isSpoiler(comment.getIsSpoiler())
                 .build();
     }
 
