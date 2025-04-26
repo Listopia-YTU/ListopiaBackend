@@ -6,10 +6,11 @@ import lombok.Data;
 @Data
 @Builder
 public class MovieCommentDTO {
-    Long id;
-    String userUUID;
-    Integer movieId;
-    Long sentAtTimestampSeconds;
-    Boolean isSpoiler;
-    String message;
+    private Long commentId;
+    private Integer movieId;
+    private UserDTO user;
+    private Long sentAt;
+    private Boolean isSpoiler;
+    private Boolean isUpdated;
+    private String message;
 }

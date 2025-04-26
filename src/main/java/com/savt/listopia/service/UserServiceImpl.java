@@ -5,6 +5,8 @@ import com.savt.listopia.exception.ResourceNotFoundException;
 import com.savt.listopia.exception.userException.UserException;
 import com.savt.listopia.exception.userException.UserNotAuthorizedException;
 import com.savt.listopia.exception.userException.UserNotFoundException;
+import com.savt.listopia.mapper.MovieCommentMapper;
+import com.savt.listopia.mapper.UserMapper;
 import com.savt.listopia.model.movie.Movie;
 import com.savt.listopia.model.user.MovieComment;
 import com.savt.listopia.model.user.PrivateMessage;
@@ -42,6 +44,8 @@ public class UserServiceImpl implements UserService {
     private final PrivateMessageRepository privateMessageRepository;
     private final MovieRepository movieRepository;
     private final MovieCommentRepository movieCommentRepository;
+    private final MovieCommentMapper movieCommentMapper;
+    private final UserMapper userMapper;
 
     public static <D, T> Page<D> mapEntityPageToDtoPage(Page<T> entities, Class<D> dtoClass, ModelMapper mapper) {
         List<D> dtoList = entities.getContent().stream()
@@ -51,18 +55,21 @@ public class UserServiceImpl implements UserService {
         return new PageImpl<>(dtoList, entities.getPageable(), entities.getTotalElements());
     }
 
-    public UserServiceImpl(UserRepository userRepository, ModelMapper modelMapper, PrivateMessageRepository privateMessageRepository, MovieRepository movieRepository, MovieCommentRepository movieCommentRepository) {
+    public UserServiceImpl(UserRepository userRepository, ModelMapper modelMapper, PrivateMessageRepository privateMessageRepository, MovieRepository movieRepository, MovieCommentRepository movieCommentRepository, MovieCommentMapper movieCommentMapper, UserMapper userMapper) {
         this.userRepository = userRepository;
         this.modelMapper = modelMapper;
         this.privateMessageRepository = privateMessageRepository;
         this.movieRepository = movieRepository;
         this.movieCommentRepository = movieCommentRepository;
+        this.movieCommentMapper = movieCommentMapper;
+        this.userMapper = userMapper;
     }
 
     @Override
     public UserDTO getUserByUsername(String username) {
         User user = userRepository.findByUsername(username).orElseThrow(UserNotFoundException::new);
-        return modelMapper.map(user, UserDTO.class);
+        return userMapper.toDTO(user);
+        // return modelMapper.map(user, UserDTO.class);
     }
 
     public User registerUser(String firstname, String lastName, String email, String username, String plainPassword) {
@@ -303,14 +310,7 @@ public class UserServiceImpl implements UserService {
     }
 
     public MovieCommentDTO movieCommentToDTO(MovieComment comment) {
-        return MovieCommentDTO.builder()
-                .id(comment.getId())
-                .sentAtTimestampSeconds(comment.getSentAtTimestampSeconds())
-                .userUUID(comment.getFromUser().getUuid().toString())
-                .movieId(comment.getMovie().getMovieId())
-                .message(comment.getMessage())
-                .isSpoiler(comment.getIsSpoiler())
-                .build();
+        return movieCommentMapper.toDTO(comment);
     }
 
     @Transactional
@@ -360,6 +360,7 @@ public class UserServiceImpl implements UserService {
 
         comment.setIsSpoiler(isSpoiler);
         comment.setMessage(message);
+        comment.setIsUpdated(true);
         movieCommentRepository.save(comment);
         return movieCommentToDTO(comment);
     }
@@ -370,22 +371,23 @@ public class UserServiceImpl implements UserService {
 
     public Page<MovieCommentDTO> getMovieCommentForMovie(Integer movieId, int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("sentAtTimestampSeconds").descending());
-        return movieCommentRepository.findByMovie_MovieId(movieId, pageable).map(this::movieCommentToDTO);
+        Page<MovieComment> dto = movieCommentRepository.findByMovie_MovieId(movieId, pageable);
+        return movieCommentMapper.toDTOPage(dto);
     }
 
     public Page<MovieCommentDTO> getMovieCommentFromUser(Long userId, int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("sentAtTimestampSeconds").descending());
-        return movieCommentRepository.findByFromUser_Id(userId, pageable).map(this::movieCommentToDTO);
+        return movieCommentMapper.toDTOPage(movieCommentRepository.findByFromUser_Id(userId, pageable));
     }
 
     public Page<MovieCommentDTO> getMovieCommentForMovieFromUser(Integer movieId, Long userId, int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("sentAtTimestampSeconds").descending());
-        return movieCommentRepository.findByFromUser_IdAndMovie_MovieId(userId, movieId, pageable).map(this::movieCommentToDTO);
+        return movieCommentMapper.toDTOPage(movieCommentRepository.findByFromUser_IdAndMovie_MovieId(userId, movieId, pageable));
     }
 
     public Page<MovieCommentDTO> getMovieCommentReported(Boolean isReported, int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("sentAtTimestampSeconds").descending());
-        return movieCommentRepository.findByIsReported(isReported, pageable).map(this::movieCommentToDTO);
+        return movieCommentMapper.toDTOPage( movieCommentRepository.findByIsReported(isReported, pageable));
     }
 
 }

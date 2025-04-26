@@ -100,7 +100,7 @@ public class MovieController {
     }
 
     @GetMapping("/movies/{movieId}/comment")
-    public ResponseEntity<List<MovieCommentDTO>> getMovieComments(
+    public ResponseEntity<Page<MovieCommentDTO>> getMovieComments(
             @PathVariable Integer movieId,
             @RequestParam(name = "pageNumber", defaultValue = AppConstants.PAGE_NUMBER, required = false) Integer pageNumber,
             @Max(50) @RequestParam(name = "pageSize", defaultValue = AppConstants.PAGE_SIZE, required = false) Integer pageSize,
@@ -113,7 +113,7 @@ public class MovieController {
             Long userId = userService.getUserIdFromUUID(UUID.fromString(fromUser));
             dto = userService.getMovieCommentForMovieFromUser(movieId, userId, pageNumber, pageSize);
         }
-        return ResponseEntity.ok(dto.toList());
+        return ResponseEntity.ok(dto);
     }
 
     @PostMapping("/movies/comment/{commentId}/report")
@@ -124,7 +124,7 @@ public class MovieController {
         return ResponseEntity.ok(APIResponse.builder().success(true).message("movie_comment_reported").build());
     }
 
-    @PostMapping("/movies/comment/{commentId}")
+    @PutMapping("/movies/comment/{commentId}/")
     public ResponseEntity<MovieCommentDTO> changeComment(
             @PathVariable Long commentId,
             @RequestParam(name = "message") String message,

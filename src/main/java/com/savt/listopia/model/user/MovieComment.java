@@ -3,6 +3,8 @@ package com.savt.listopia.model.user;
 import com.savt.listopia.model.movie.Movie;
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 @Data
 @Entity
@@ -10,21 +12,22 @@ import lombok.Data;
 public class MovieComment {
     @Id
     @GeneratedValue
-    Long id;
+    private Long id;
 
     @ManyToOne
     @JoinColumn(name = "from_user", nullable = false)
-    User fromUser;
+    private User fromUser;
 
     @ManyToOne
     @JoinColumn(name = "movie_id", nullable = false)
-    Movie movie;
+    private Movie movie;
 
-    Long sentAtTimestampSeconds;
+    private Long sentAtTimestampSeconds;
 
-    Boolean isReported = false;
-    Boolean isSpoiler;
+    private Boolean isReported = false;
+    private Boolean isSpoiler;
+    private Boolean isUpdated = false;
 
     @Column(columnDefinition = "TEXT", length = 4096)
-    String message;
+    private String message;
 }
