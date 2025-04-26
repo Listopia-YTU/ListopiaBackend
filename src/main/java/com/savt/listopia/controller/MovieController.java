@@ -15,7 +15,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -124,7 +123,7 @@ public class MovieController {
         return ResponseEntity.ok(APIResponse.builder().success(true).message("movie_comment_reported").build());
     }
 
-    @PutMapping("/movies/comment/{commentId}/")
+    @PutMapping("/movies/comment/{commentId}")
     public ResponseEntity<MovieCommentDTO> changeComment(
             @PathVariable Long commentId,
             @RequestParam(name = "message") String message,
