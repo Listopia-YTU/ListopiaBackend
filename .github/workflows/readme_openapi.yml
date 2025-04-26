@@ -1,0 +1,54 @@
+name: Build Spring Boot, Fetch OpenAPI, Upload to ReadMe
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  update-readme-docs:
+    runs-on: ubuntu-latest
+
+    env:
+      README_API_KEY: ${{ secrets.README_IO_API_KEY }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Build with Maven
+        run: mvn clean install -DskipTests
+
+      - name: Start Spring Boot App
+        run: |
+          nohup mvn spring-boot:run -Dspring-boot.run.arguments=--server.port=8080 > app.log 2>&1 &
+
+      - name: Wait for Spring Boot to be Ready
+        run: |
+          echo "Waiting for Spring Boot to start..."
+          for i in {1..30}; do
+            if curl -s http://localhost:8080/v3/api-docs | grep "openapi"; then
+              echo "Spring Boot app is ready!"
+              break
+            fi
+            echo "Still waiting ($i)..."
+            sleep 5
+          done
+
+      - name: Download OpenAPI Spec
+        run: |
+          curl -s http://localhost:8080/v3/api-docs -o openapi.json
+
+      - name: Upload OpenAPI Spec to ReadMe.io
+        run: |
+          curl --request PUT \
+            --url https://dash.readme.com/api/v1/api-specification \
+            --header "Authorization: Basic $README_API_KEY" \
+            --header "Content-Type: application/json" \
+            --data @openapi.json
