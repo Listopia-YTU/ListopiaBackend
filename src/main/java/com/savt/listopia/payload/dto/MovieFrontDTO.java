@@ -21,4 +21,6 @@ public class MovieFrontDTO {
     private Integer likeCount;
 
     private Double ratingAverage;
+
+    private Long clickCount;
 }
