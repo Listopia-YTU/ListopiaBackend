@@ -34,7 +34,6 @@ import org.springframework.data.domain.*;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.util.HtmlUtils;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -43,10 +42,6 @@ public class UserServiceImpl implements UserService {
     private final PrivateMessageRepository privateMessageRepository;
     private final MovieRepository movieRepository;
     private final MovieCommentRepository movieCommentRepository;
-
-    static String HTMLEscape(String input) {
-        return HtmlUtils.htmlEscape(input);
-    }
 
     public static <D, T> Page<D> mapEntityPageToDtoPage(Page<T> entities, Class<D> dtoClass, ModelMapper mapper) {
         List<D> dtoList = entities.getContent().stream()
@@ -80,8 +75,8 @@ public class UserServiceImpl implements UserService {
         String hashedPassword = PasswordUtil.hashPassword(plainPassword);
         User user = new User();
         user.setEmail(email);
-        user.setFirstName(HTMLEscape(firstname));
-        user.setLastName(HTMLEscape(lastName));
+        user.setFirstName(firstname);
+        user.setLastName(lastName);
         user.setUsername(username);
         user.setHashedPassword(hashedPassword);
 
@@ -239,15 +234,14 @@ public class UserServiceImpl implements UserService {
     }
 
     @Transactional
-    public void sendMessage(Long fromId, Long toId, String messageUnsafe) {
+    public void sendMessage(Long fromId, Long toId, String messageStr) {
         PrivateMessage message = new PrivateMessage();
         // message.setFromUserId(fromId);
         message.setFromUser( userRepository.findById(fromId).orElseThrow(UserNotFoundException::new) );
         // message.setToUserId(toId);
         message.setToUser( userRepository.findById(toId).orElseThrow(UserNotFoundException::new) );
         message.setSentAtTimestampSeconds(Instant.now().getEpochSecond());
-        // @todo: use Apache Commons?
-        message.setMessage(HtmlUtils.htmlEscape(messageUnsafe));
+        message.setMessage(messageStr);
         privateMessageRepository.save(message);
     }
 
@@ -315,7 +309,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Transactional
-    public MovieCommentDTO createMovieComment(Long userId, Integer movieId, Boolean isSpoiler, String messageUnsafe) {
+    public MovieCommentDTO createMovieComment(Long userId, Integer movieId, Boolean isSpoiler, String message) {
         User commented = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
         Movie movie = movieRepository.findById(movieId).orElseThrow(ResourceNotFoundException::new);
 
@@ -324,7 +318,7 @@ public class UserServiceImpl implements UserService {
         comment.setFromUser(commented);
         comment.setIsSpoiler(isSpoiler);
         comment.setSentAtTimestampSeconds(Instant.now().getEpochSecond());
-        comment.setMessage(HtmlUtils.htmlEscape(messageUnsafe));
+        comment.setMessage(message);
 
         movieCommentRepository.save(comment);
 
@@ -352,7 +346,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public MovieCommentDTO updateMovieComment(Long userId, Long commentId, Boolean isSpoiler, String messageUnsafe) {
+    public MovieCommentDTO updateMovieComment(Long userId, Long commentId, Boolean isSpoiler, String message) {
         User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
         MovieComment comment = movieCommentRepository.findById(commentId).orElseThrow(ResourceNotFoundException::new);
 
@@ -360,7 +354,7 @@ public class UserServiceImpl implements UserService {
             throw new UserNotAuthorizedException();
 
         comment.setIsSpoiler(isSpoiler);
-        comment.setMessage(HtmlUtils.htmlEscape(messageUnsafe));
+        comment.setMessage(message);
         movieCommentRepository.save(comment);
         return movieCommentToDTO(comment);
     }
