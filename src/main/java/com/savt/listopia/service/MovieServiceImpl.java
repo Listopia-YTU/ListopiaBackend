@@ -22,6 +22,7 @@ import info.movito.themoviedbapi.model.movies.MovieDb;
 import info.movito.themoviedbapi.model.movies.Translation;
 import info.movito.themoviedbapi.tools.TmdbException;
 import info.movito.themoviedbapi.tools.appendtoresponse.MovieAppendToResponse;
+import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -173,6 +174,7 @@ public class MovieServiceImpl implements MovieService {
     }
 
     @Override
+    @Transactional
     public MovieDTO getMovie(Integer movieId, String language) {
         Movie movie = movieRepository.findById(movieId)
                 .orElseThrow(() -> new ResourceNotFoundException("Movie", "movieId", movieId));
@@ -208,6 +210,8 @@ public class MovieServiceImpl implements MovieService {
             }
         }
 
+        movie.setClickCount(movie.getClickCount() + 1);
+        movieRepository.save(movie);
         MovieDTO movieDTO = modelMapper.map(movie, MovieDTO.class);
 
         if (!(language.equals("en"))) {
