@@ -50,13 +50,13 @@ public class Movie {
 
     //
 
-    private Integer watchCount;
+    private Integer watchCount = 0;
 
-    private Integer likeCount;
+    private Integer likeCount = 0;
 
-    private Double ratingAverage;
+    private Double ratingAverage = 0.0;
 
-    private Integer ratingCount;
+    private Integer ratingCount = 0;
 
     //
 
