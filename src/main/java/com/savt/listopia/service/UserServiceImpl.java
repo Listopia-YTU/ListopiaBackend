@@ -160,6 +160,20 @@ public class UserServiceImpl implements UserService {
                 .getId();
     }
 
+    @Override
+    public void changePassword(Long userId, String password) {
+        User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
+        user.setHashedPassword( PasswordUtil.hashPassword(password) );
+        userRepository.save(user);
+    }
+
+    @Override
+    public void changeBiography(Long userId, String biography) {
+        User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
+        user.setBiography(biography);
+        userRepository.save(user);
+    }
+
     @Transactional
     public Page<MovieFrontDTO> getUserLikedMovies(Long userId, int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
@@ -218,6 +232,32 @@ public class UserServiceImpl implements UserService {
             MakeFriends( accepter.getId(), accepted.getId() );
             accepter.getFriendRequests().remove( accepted );
             userRepository.save(accepter);
+        }
+    }
+
+    @Override
+    @Transactional
+    public void rejectFriend(Long userId, UUID friendUUID) {
+        User accepter = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
+        User accepted = userRepository.findByUuid(friendUUID).orElseThrow(UserNotFoundException::new);
+        if ( accepter.getFriendRequests().contains(accepted) ) {
+            accepter.getFriendRequests().remove(accepted);
+            userRepository.save(accepter);
+        }
+    }
+
+    @Override
+    @Transactional
+    public void removeFriend(Long userId, UUID friendUUID) {
+        User remover = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
+        User lonely = userRepository.findByUuid(friendUUID).orElseThrow(UserNotFoundException::new);
+        if ( remover.getFriends().contains(lonely) ) {
+            remover.getFriends().remove(lonely);
+            userRepository.save(remover);
+        }
+        if ( lonely.getFriends().contains(remover) ) {
+            lonely.getFriends().remove(remover);
+            userRepository.save(lonely);
         }
     }
 
