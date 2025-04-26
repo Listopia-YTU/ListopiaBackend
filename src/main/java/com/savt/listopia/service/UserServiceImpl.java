@@ -314,9 +314,11 @@ public class UserServiceImpl implements UserService {
     }
 
     @Transactional
-    public MovieCommentDTO createMovieComment(Long userId, Integer movieId, Boolean isSpoiler, String message) {
+    public MovieCommentDTO createMovieComment(Long userId, Integer movieId, Boolean isSpoiler, String messageU) {
         User commented = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
         Movie movie = movieRepository.findById(movieId).orElseThrow(ResourceNotFoundException::new);
+
+        String message = messageU.trim();
 
         if (message.isEmpty())
             throw new APIException("message_cannot_be_null");
@@ -354,12 +356,14 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public MovieCommentDTO updateMovieComment(Long userId, Long commentId, Boolean isSpoiler, String message) {
+    public MovieCommentDTO updateMovieComment(Long userId, Long commentId, Boolean isSpoiler, String messageU) {
         User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
         MovieComment comment = movieCommentRepository.findById(commentId).orElseThrow(ResourceNotFoundException::new);
 
         if (!comment.getFromUser().equals(user))
             throw new UserNotAuthorizedException();
+
+        String message = messageU.trim();
 
         if (message.isEmpty())
             throw new APIException("message_cannot_be_null");
