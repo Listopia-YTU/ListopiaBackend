@@ -318,6 +318,9 @@ public class UserServiceImpl implements UserService {
         User commented = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
         Movie movie = movieRepository.findById(movieId).orElseThrow(ResourceNotFoundException::new);
 
+        if (message.isEmpty())
+            throw new APIException("message_cannot_be_null");
+
         MovieComment comment = new MovieComment();
         comment.setMovie(movie);
         comment.setFromUser(commented);
@@ -357,6 +360,9 @@ public class UserServiceImpl implements UserService {
 
         if (!comment.getFromUser().equals(user))
             throw new UserNotAuthorizedException();
+
+        if (message.isEmpty())
+            throw new APIException("message_cannot_be_null");
 
         comment.setIsSpoiler(isSpoiler);
         comment.setMessage(message);
