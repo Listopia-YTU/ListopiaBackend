@@ -10,7 +10,8 @@ import com.savt.listopia.payload.APIResponse;
 import com.savt.listopia.payload.dto.MovieFrontDTO;
 import com.savt.listopia.payload.dto.PrivateMessageDTO;
 import com.savt.listopia.payload.dto.UserDTO;
-import com.savt.listopia.payload.request.UserUUID;
+import com.savt.listopia.payload.request.ChangeBiography;
+import com.savt.listopia.payload.request.ChangePassword;
 import com.savt.listopia.repository.MovieRepository;
 import com.savt.listopia.security.request.ChangeUsernameRequest;
 import com.savt.listopia.security.request.MessageUserRequest;
@@ -23,7 +24,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -38,19 +38,33 @@ public class UserController {
         this.movieRepository = movieRepository;
     }
 
-    @GetMapping("/{username}")
+    @GetMapping("/username/{username}")
     public ResponseEntity<UserDTO> getUser(@PathVariable String username) {
         LOGGER.info("getUser: {}", username);
         UserDTO dto = userService.getUserByUsername(username);
         return ResponseEntity.ok(dto);
     }
 
-    @PostMapping("/change_username")
+    @PutMapping("/username")
     public ResponseEntity<APIResponse> ChangeUsername(@Valid @RequestBody ChangeUsernameRequest changeUsernameRequest) {
         Long userId = userService.getCurrentUserIdOrThrow();
         LOGGER.trace("change_username:id: {}", userId);
         userService.ChangeUsername(userId, changeUsernameRequest.getNewUsername());
         return ResponseEntity.ok( APIResponse.builder().success(true).message("username_changed").build() );
+    }
+
+    @PutMapping("/password")
+    public ResponseEntity<APIResponse> changePassword(@Valid @RequestBody ChangePassword req) {
+        Long userId = userService.getCurrentUserId().orElseThrow(UserNotAuthorizedException::new);
+        userService.changePassword(userId, req.getPassword());
+        return ResponseEntity.ok( APIResponse.success("password_changed") );
+    }
+
+    @PutMapping("/biography")
+    public ResponseEntity<APIResponse> changeBiography(@Valid @RequestBody ChangeBiography req) {
+        Long userId = userService.getCurrentUserId().orElseThrow(UserNotAuthorizedException::new);
+        userService.changeBiography(userId, req.getBiography());
+        return ResponseEntity.ok( APIResponse.success("biography_changed") );
     }
 
     @GetMapping("/me")
@@ -60,21 +74,35 @@ public class UserController {
         return ResponseEntity.ok(userDTO);
     }
 
-    @PostMapping("/add_friend")
-    public ResponseEntity<APIResponse> AddFriend(@Valid @RequestBody UserUUID uuid) {
+    @PostMapping("/friend/add/{uuid}")
+    public ResponseEntity<APIResponse> AddFriend(@Valid @PathVariable String uuid) {
         Long userId = userService.getCurrentUserId().orElseThrow(UserNotAuthorizedException::new);
-        userService.UserFriendRequest(userId, uuid.getUuid());
+        userService.UserFriendRequest(userId, UUID.fromString(uuid));
         return ResponseEntity.ok(APIResponse.builder().success(true).message("friend_request_sent").build());
     }
 
-    @PostMapping("accept_friend")
-    public ResponseEntity<APIResponse> AcceptFriend(@Valid @RequestBody UserUUID uuid) {
+    @PostMapping("/friend/accept/{uuid}")
+    public ResponseEntity<APIResponse> AcceptFriend(@Valid @PathVariable String uuid) {
         Long userId = userService.getCurrentUserId().orElseThrow(UserNotFoundException::new);
-        userService.AcceptFriend(userId, uuid.getUuid());
+        userService.AcceptFriend(userId, UUID.fromString(uuid));
         return ResponseEntity.ok(APIResponse.builder().success(true).message("friend_added").build());
     }
 
-    @GetMapping("/friend_requests")
+    @PostMapping("/friend/reject/{uuid}")
+    public ResponseEntity<APIResponse> rejectFriend(@Valid @PathVariable String uuid) {
+        Long userId = userService.getCurrentUserId().orElseThrow(UserNotFoundException::new);
+        userService.rejectFriend(userId, UUID.fromString(uuid));
+        return ResponseEntity.ok(APIResponse.builder().success(true).message("friend_rejected").build());
+    }
+
+    @DeleteMapping("/friend/remove/{uuid}")
+    public ResponseEntity<APIResponse> removeFriend(@Valid @PathVariable String uuid) {
+        Long userId = userService.getCurrentUserId().orElseThrow(UserNotFoundException::new);
+        userService.removeFriend(userId, UUID.fromString(uuid));
+        return ResponseEntity.ok(APIResponse.builder().success(true).message("friend_rejected").build());
+    }
+
+    @GetMapping("/friend/requests")
     public ResponseEntity<Page<UserDTO>> FriendRequests(
             @RequestParam(name = "pageNumber", defaultValue = AppConstants.PAGE_NUMBER, required = false) Integer pageNumber,
             @Max(50) @RequestParam(name = "pageSize", defaultValue = AppConstants.PAGE_SIZE, required = false) Integer pageSize
@@ -84,7 +112,7 @@ public class UserController {
         return ResponseEntity.ok(requests);
     }
 
-    @GetMapping("/{uuid}/friends")
+    @GetMapping("/uuid/{uuid}/friends")
     public ResponseEntity<Page<UserDTO>> Friends(
             @PathVariable String uuid,
             @RequestParam(name = "pageNumber", defaultValue = AppConstants.PAGE_NUMBER, required = false) Integer pageNumber,
@@ -96,7 +124,7 @@ public class UserController {
         );
     }
 
-    @GetMapping("/{uuid}/liked_movies")
+    @GetMapping("/uuid/{uuid}/liked_movies")
     public ResponseEntity<Page<MovieFrontDTO>> getUserLikedMovies(
             @PathVariable UUID uuid,
             @RequestParam(name = "pageNumber", defaultValue = AppConstants.PAGE_NUMBER, required = false) Integer pageNumber,
@@ -107,7 +135,7 @@ public class UserController {
         return ResponseEntity.ok(likedMovies);
     }
 
-    @PutMapping("/like_movie/{movieId}")
+    @PutMapping("/movie/{movieId}/like")
     public ResponseEntity<APIResponse> likeMovie(
             @PathVariable Integer movieId,
             @RequestParam Boolean liked
@@ -122,6 +150,9 @@ public class UserController {
         return ResponseEntity.ok(APIResponse.builder().message("movie_like_updated").success(true).build());
     }
 
+    //////
+    //// MESSAGE
+    //////
 
     @PostMapping("/message")
     public ResponseEntity<APIResponse> Message(@Valid @RequestBody MessageUserRequest request) {
@@ -162,7 +193,7 @@ public class UserController {
         return ResponseEntity.ok(messages);
     }
 
-    @GetMapping("/message/from/{userUuid}")
+    @GetMapping("/message/received/{userUuid}")
     public ResponseEntity<Page<PrivateMessageDTO>> MessagesFromUser(
             @PathVariable String userUuid,
             @RequestParam(name = "pageNumber", defaultValue = AppConstants.PAGE_NUMBER, required = false) Integer pageNumber,
@@ -178,7 +209,7 @@ public class UserController {
         return ResponseEntity.ok(messageDTOS);
     }
 
-    @GetMapping("/message/to/{userUuid}")
+    @GetMapping("/message/sent/{userUuid}")
     public ResponseEntity<Page<PrivateMessageDTO>> MessagesToUser(
             @PathVariable String userUuid,
             @RequestParam(name = "pageNumber", defaultValue = AppConstants.PAGE_NUMBER, required = false) Integer pageNumber,

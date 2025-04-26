@@ -24,6 +24,9 @@ public class User {
     @Column(unique = true)
     String username;
 
+    @Column(columnDefinition = "TEXT", length = 128)
+    String biography = "";
+
     String firstName;
     String lastName;
 
@@ -32,9 +35,8 @@ public class User {
 
     String hashedPassword;
 
-    @Nullable
     @Enumerated(EnumType.STRING)
-    private UserRole role;
+    private UserRole role = UserRole.USER;
 
     @ManyToMany
     @JoinTable(

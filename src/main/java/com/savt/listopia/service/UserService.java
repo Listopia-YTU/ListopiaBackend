@@ -27,6 +27,8 @@ public interface UserService {
     UUID getUUIDFromUserId(Long userId);
     void ChangeUsername(Long userId, String username);
     Long getUserIdFromUUID(UUID uuid);
+    void changePassword(Long userId, String password);
+    void changeBiography(Long userId, String biography);
 
     @Transactional
     Page<MovieFrontDTO> getUserLikedMovies(Long userId, int page, int size);
@@ -39,6 +41,8 @@ public interface UserService {
     void UserFriendRequest(Long requestOwnerUserId, UUID requestedUserUuid);
     @Transactional
     void AcceptFriend(Long accepterId, UUID acceptedUUID);
+    void rejectFriend(Long userId, UUID friendUUID);
+    void removeFriend(Long userId, UUID friendUUID);
     @Transactional
     Page<UserDTO> UserFriendRequests(Long userId, int page, int size);
     @Transactional
