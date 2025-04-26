@@ -172,10 +172,14 @@ public class UserServiceImpl implements UserService {
             if (!user.getLikedMovies().contains(movie)) {
                 user.getLikedMovies().add(movie);
                 userRepository.save(user);
+                movie.setLikeCount(movie.getLikeCount() + 1);
+                movieRepository.save(movie);
             }
         } else {
             user.getLikedMovies().remove(movie);
             userRepository.save(user);
+            movie.setLikeCount(movie.getLikeCount() - 1);
+            movieRepository.save(movie);
         }
     }
 
