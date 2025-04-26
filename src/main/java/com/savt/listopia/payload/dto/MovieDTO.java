@@ -54,6 +54,8 @@ public class MovieDTO {
 
     private Integer ratingCount;
 
+    private Long clickCount;
+
     // External Ids //
 
     private String imdbId;
