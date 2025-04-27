@@ -3,6 +3,7 @@ package com.savt.listopia.service;
 import com.savt.listopia.model.movie.Movie;
 import com.savt.listopia.model.user.MovieComment;
 import com.savt.listopia.model.user.Notification;
+import com.savt.listopia.model.user.NotificationType;
 import com.savt.listopia.model.user.User;
 import com.savt.listopia.payload.dto.*;
 
@@ -74,6 +75,7 @@ public interface UserService {
     Page<MovieCommentDTO> getMovieCommentForMovieFromUser(Integer movieId, Long userId, int page, int size);
     Page<MovieCommentDTO> getMovieCommentReported(Boolean isReported, int page, int size);
 
+    NotificationDTO createNotification(Long userId, NotificationType type, String content);
     NotificationDTO getNotification(Long userId, Long notificationId);
     Page<NotificationDTO> getUserNotifications(Long userId, int pageNumber, int pageSize);
     void userNotifiedBefore(Long userId, Long time);

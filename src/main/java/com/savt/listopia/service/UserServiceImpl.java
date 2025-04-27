@@ -9,10 +9,7 @@ import com.savt.listopia.mapper.MovieCommentMapper;
 import com.savt.listopia.mapper.NotificationMapper;
 import com.savt.listopia.mapper.UserMapper;
 import com.savt.listopia.model.movie.Movie;
-import com.savt.listopia.model.user.MovieComment;
-import com.savt.listopia.model.user.Notification;
-import com.savt.listopia.model.user.PrivateMessage;
-import com.savt.listopia.model.user.User;
+import com.savt.listopia.model.user.*;
 import com.savt.listopia.payload.dto.*;
 import com.savt.listopia.repository.*;
 import com.savt.listopia.security.auth.AuthenticationToken;
@@ -27,6 +24,8 @@ import java.util.stream.Collectors;
 
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.*;
 import org.springframework.security.core.Authentication;
@@ -35,6 +34,8 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class UserServiceImpl implements UserService {
+    private static final Logger LOGGER = LoggerFactory.getLogger(UserServiceImpl.class);
+
     private final UserRepository userRepository;
     private final ModelMapper modelMapper;
     private final PrivateMessageRepository privateMessageRepository;
@@ -223,6 +224,7 @@ public class UserServiceImpl implements UserService {
         if (Objects.equals(requester.getId(), requested.getId()))
             return;
         requested.getFriendRequests().add(requester);
+        createNotification(requested.getId(), NotificationType.FRIEND_REQUEST, requester.getUuid().toString());
         userRepository.save(requested);
     }
 
@@ -288,13 +290,14 @@ public class UserServiceImpl implements UserService {
 
     @Transactional
     public void sendMessage(Long fromId, Long toId, String messageStr) {
+        User sender = userRepository.findById(fromId).orElseThrow(UserNotFoundException::new);
+        User receiver = userRepository.findById(toId).orElseThrow(UserNotFoundException::new);
         PrivateMessage message = new PrivateMessage();
-        // message.setFromUserId(fromId);
-        message.setFromUser( userRepository.findById(fromId).orElseThrow(UserNotFoundException::new) );
-        // message.setToUserId(toId);
-        message.setToUser( userRepository.findById(toId).orElseThrow(UserNotFoundException::new) );
+        message.setFromUser( sender );
+        message.setToUser( receiver );
         message.setSentAtTimestampSeconds(Instant.now().getEpochSecond());
         message.setMessage(messageStr);
+        createNotification(receiver.getId(), NotificationType.NEW_MESSAGE, sender.getUuid().toString());
         privateMessageRepository.save(message);
     }
 
@@ -440,6 +443,20 @@ public class UserServiceImpl implements UserService {
     public Page<MovieCommentDTO> getMovieCommentReported(Boolean isReported, int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("sentAtTimestampSeconds").descending());
         return movieCommentMapper.toDTOPage( movieCommentRepository.findByIsReported(isReported, pageable));
+    }
+
+    @Override
+    public NotificationDTO createNotification(Long userId, NotificationType type, String content) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException("user_not_found"));
+        Notification notification = new Notification();
+
+        notification.setUser(user);
+        notification.setType(type);
+        notification.setContent(content);
+        notification.setTime( System.currentTimeMillis() );
+
+        Notification res = notificationRepository.save(notification);
+        return notificationMapper.toDTO(res);
     }
 
     @Override

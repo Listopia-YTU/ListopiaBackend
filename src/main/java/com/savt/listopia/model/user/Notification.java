@@ -19,7 +19,7 @@ public class Notification {
     @Enumerated(EnumType.STRING)
     private NotificationType type;
 
-    @Column(nullable = false, columnDefinition = "TEXT", length = 128)
+    @Column(nullable = false)
     private String content;
 
     @Column(nullable = false)
