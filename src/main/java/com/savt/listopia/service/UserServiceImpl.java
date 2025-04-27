@@ -639,6 +639,8 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void createUserActivity(Long userId, UserActivityType type, String content) {
+        return;
+        /*
         User user = userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException("user_not_found"));
 
         UserActivity activity = new UserActivity();
@@ -647,6 +649,7 @@ public class UserServiceImpl implements UserService {
         activity.setTime(System.currentTimeMillis());
 
         userActivityRepository.save(activity);
+         */
     }
 
     @Override
