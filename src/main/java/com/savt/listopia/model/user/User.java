@@ -67,4 +67,6 @@ public class User {
     )
     List<User> friendRequests = new ArrayList<>();
 
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    private List<Notification> notifications = new ArrayList<>();
 }

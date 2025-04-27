@@ -7,7 +7,6 @@ import com.savt.listopia.security.auth.AuthenticationToken;
 
 import java.time.Duration;
 import java.util.UUID;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseCookie;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -17,8 +16,11 @@ import org.springframework.stereotype.Service;
 public class SessionService {
     private static final long SESSION_EXPIRY_TIME = 7 * 24 * 60 * 60 * 1000; // 1 hafta
 
-    @Autowired
-    SessionRepository sessionRepository;
+    private final SessionRepository sessionRepository;
+
+    public SessionService(SessionRepository sessionRepository) {
+        this.sessionRepository = sessionRepository;
+    }
 
     public Session createSession(User user) {
         Session session = new Session();
