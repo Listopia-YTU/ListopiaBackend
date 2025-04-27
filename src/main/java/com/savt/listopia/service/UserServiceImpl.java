@@ -50,7 +50,6 @@ public class UserServiceImpl implements UserService {
     private final UserActivityRepository userActivityRepository;
     private final UserActivityMapperImpl userActivityMapperImpl;
     private final ObjectMapper objectMapper;
-    private final MovieServiceImpl movieServiceImpl;
 
     public static <D, T> Page<D> mapEntityPageToDtoPage(Page<T> entities, Class<D> dtoClass, ModelMapper mapper) {
         List<D> dtoList = entities.getContent().stream()
@@ -60,7 +59,7 @@ public class UserServiceImpl implements UserService {
         return new PageImpl<>(dtoList, entities.getPageable(), entities.getTotalElements());
     }
 
-    public UserServiceImpl(UserRepository userRepository, ModelMapper modelMapper, PrivateMessageRepository privateMessageRepository, MovieRepository movieRepository, MovieCommentRepository movieCommentRepository, MovieCommentMapper movieCommentMapper, UserMapper userMapper, NotificationRepository notificationRepository, NotificationMapper notificationMapper, MovieFrontMapper movieFrontMapper, MovieImageRepository movieImageRepository, UserActivityRepository userActivityRepository, UserActivityMapperImpl userActivityMapperImpl, ObjectMapper objectMapper, MovieServiceImpl movieServiceImpl) {
+    public UserServiceImpl(UserRepository userRepository, ModelMapper modelMapper, PrivateMessageRepository privateMessageRepository, MovieRepository movieRepository, MovieCommentRepository movieCommentRepository, MovieCommentMapper movieCommentMapper, UserMapper userMapper, NotificationRepository notificationRepository, NotificationMapper notificationMapper, MovieFrontMapper movieFrontMapper, MovieImageRepository movieImageRepository, UserActivityRepository userActivityRepository, UserActivityMapperImpl userActivityMapperImpl, ObjectMapper objectMapper) {
         this.userRepository = userRepository;
         this.modelMapper = modelMapper;
         this.privateMessageRepository = privateMessageRepository;
@@ -75,7 +74,6 @@ public class UserServiceImpl implements UserService {
         this.userActivityRepository = userActivityRepository;
         this.userActivityMapperImpl = userActivityMapperImpl;
         this.objectMapper = objectMapper;
-        this.movieServiceImpl = movieServiceImpl;
     }
 
     @Override
@@ -639,17 +637,20 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void createUserActivity(Long userId, UserActivityType type, String content) {
-        return;
-        /*
         User user = userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException("user_not_found"));
+
+        if ( content == null ) {
+            LOGGER.error("createUserActivity() called with null parameter 'content'!");
+            return;
+        }
 
         UserActivity activity = new UserActivity();
         activity.setUser(user);
         activity.setType(type);
+        activity.setContent(content);
         activity.setTime(System.currentTimeMillis());
 
         userActivityRepository.save(activity);
-         */
     }
 
     @Override
