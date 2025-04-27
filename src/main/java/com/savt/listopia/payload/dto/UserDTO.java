@@ -19,4 +19,7 @@ public class UserDTO {
 
     @Schema(nullable = true, description = "User Role can be null. User role in the system. Possible values: ADMIN, MODERATOR, USER")
     private UserRole role;
+
+    private Long lastOnline;
+    private Long createdAt;
 }

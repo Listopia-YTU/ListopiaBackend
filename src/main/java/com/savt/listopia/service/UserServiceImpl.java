@@ -86,6 +86,8 @@ public class UserServiceImpl implements UserService {
         user.setLastName(lastName);
         user.setUsername(username);
         user.setHashedPassword(hashedPassword);
+        user.setCreatedAt( System.currentTimeMillis() );
+        user.setLastOnline( System.currentTimeMillis() );
 
         try {
             userRepository.save(user);

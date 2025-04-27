@@ -49,9 +49,29 @@ public class SessionService {
         sessionRepository.delete(session);
     }
 
-    public Session getSessionByUuid(String uuidStr) {
+    public Session getAndUpdateSession(String uuidStr) {
         UUID uuid = UUID.fromString(uuidStr);
-        return sessionRepository.findByUuid(uuid);
+
+        Session session = sessionRepository.findByUuid(uuid).orElse(null);
+
+        if ( session == null )
+            return null;
+
+        // check if session expired
+        long end = session.getExpiresAt();
+        long now = System.currentTimeMillis();
+
+        if ( now < end ) {
+            // update expire date
+            session.setExpiresAt(now + SESSION_EXPIRY_TIME);
+            sessionRepository.save(session);
+            return session;
+        } else {
+            // session expired
+            sessionRepository.delete(session);
+            return null;
+        }
+
     }
 
     public Session getCurrentSession() {

@@ -35,8 +35,13 @@ public class User {
 
     String hashedPassword;
 
+    private String profilePicture; // will be null for now.
+
     @Enumerated(EnumType.STRING)
     private UserRole role = UserRole.USER;
+
+    private Long lastOnline;
+    private Long createdAt;
 
     @ManyToMany
     @JoinTable(
