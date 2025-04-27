@@ -2,9 +2,9 @@ package com.savt.listopia.middleware;
 
 import com.savt.listopia.model.user.Session;
 import com.savt.listopia.model.user.User;
+import com.savt.listopia.repository.UserRepository;
 import com.savt.listopia.security.auth.*;
 import com.savt.listopia.service.SessionService;
-import com.savt.listopia.service.UserService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
@@ -23,6 +23,8 @@ public class AuthMiddleware extends OncePerRequestFilter {
     private static final Logger LOGGER = LoggerFactory.getLogger(AuthMiddleware.class);
     @Autowired
     SessionService sessionService;
+    @Autowired
+    private UserRepository userRepository;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain) throws ServletException, IOException {
@@ -32,9 +34,10 @@ public class AuthMiddleware extends OncePerRequestFilter {
         if (token != null) {
             // Eğer session yoksa kullanıcı rastgele string girmiş olabilir SessionID kısmına
             // veya session'un süresi dolmuştur.
-            Session session = sessionService.getSessionByUuid(token);
+            Session session = sessionService.getAndUpdateSession(token);
 
             if (session != null) {
+                updateLastSeen(session);
                 AuthenticationToken auth = new AuthenticationToken(session);
                 SecurityContextHolder.getContext().setAuthentication(auth);
             }
@@ -54,4 +57,17 @@ public class AuthMiddleware extends OncePerRequestFilter {
         }
         return null;
     }
+
+    private void updateLastSeen(Session session) {
+        Long userId = session.getUserId();
+        User user = userRepository.findById(userId).orElse(null);
+
+        if ( user != null ) {
+            user.setLastOnline( System.currentTimeMillis() );
+            userRepository.save(user);
+        } else {
+            LOGGER.warn("session {} has no user with id {}", session.getUuid(), session.getUserId());
+        }
+    }
+
 }
