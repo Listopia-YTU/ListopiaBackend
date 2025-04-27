@@ -1,10 +1,7 @@
 package com.savt.listopia.service;
 
 import com.savt.listopia.model.movie.Movie;
-import com.savt.listopia.model.user.MovieComment;
-import com.savt.listopia.model.user.Notification;
-import com.savt.listopia.model.user.NotificationType;
-import com.savt.listopia.model.user.User;
+import com.savt.listopia.model.user.*;
 import com.savt.listopia.payload.dto.*;
 
 import java.util.Optional;
@@ -33,6 +30,14 @@ public interface UserService {
     Page<MovieFrontDTO> getUserLikedMovies(Long userId, int page, int size);
     @Transactional
     void likeMovie(Long userId, Movie movie, Boolean liked);
+
+    Page<MovieFrontDTO> getUserWatchlist(Long userId, int pageNumber, int pageSize);
+    void userAddToWatchlist(Long userId, Integer movieId);
+    void userDeleteFromWatchlist(Long userId, Integer movieId);
+
+    Page<MovieFrontDTO> getUserWatched(Long userId, int pageNumber, int pageSize);
+    void userAddToWatched(Long userId, Integer movieId);
+    void userDeleteFromWatched(Long userId, Integer movieId);
 
     @Transactional
     void MakeFriends(Long userId, Long friendId);
@@ -75,9 +80,12 @@ public interface UserService {
     Page<MovieCommentDTO> getMovieCommentForMovieFromUser(Integer movieId, Long userId, int page, int size);
     Page<MovieCommentDTO> getMovieCommentReported(Boolean isReported, int page, int size);
 
-    NotificationDTO createNotification(Long userId, NotificationType type, String content);
+    void createNotification(Long userId, NotificationType type, String content);
     NotificationDTO getNotification(Long userId, Long notificationId);
     Page<NotificationDTO> getUserNotifications(Long userId, int pageNumber, int pageSize);
     void userNotifiedBefore(Long userId, Long time);
     void userNotified(Long userId, Long notificationId);
+
+    void createUserActivity(Long userId, UserActivityType type, String content);
+    Page<UserActivityDTO> getUserActivities(Long userId, int pageNumber, int pageSize);
 }
