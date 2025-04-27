@@ -19,7 +19,7 @@ public class UserActivity {
     @Enumerated(EnumType.STRING)
     private UserActivityType type;
 
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "TEXT")
     private String content;
 
     @Column(nullable = false)
