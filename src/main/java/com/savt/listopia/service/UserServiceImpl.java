@@ -6,19 +6,12 @@ import com.savt.listopia.exception.userException.UserException;
 import com.savt.listopia.exception.userException.UserNotAuthorizedException;
 import com.savt.listopia.exception.userException.UserNotFoundException;
 import com.savt.listopia.mapper.MovieCommentMapper;
+import com.savt.listopia.mapper.NotificationMapper;
 import com.savt.listopia.mapper.UserMapper;
 import com.savt.listopia.model.movie.Movie;
-import com.savt.listopia.model.user.MovieComment;
-import com.savt.listopia.model.user.PrivateMessage;
-import com.savt.listopia.model.user.User;
-import com.savt.listopia.payload.dto.MovieCommentDTO;
-import com.savt.listopia.payload.dto.MovieFrontDTO;
-import com.savt.listopia.payload.dto.PrivateMessageDTO;
-import com.savt.listopia.payload.dto.UserDTO;
-import com.savt.listopia.repository.MovieCommentRepository;
-import com.savt.listopia.repository.MovieRepository;
-import com.savt.listopia.repository.PrivateMessageRepository;
-import com.savt.listopia.repository.UserRepository;
+import com.savt.listopia.model.user.*;
+import com.savt.listopia.payload.dto.*;
+import com.savt.listopia.repository.*;
 import com.savt.listopia.security.auth.AuthenticationToken;
 import com.savt.listopia.util.PasswordUtil;
 
@@ -31,6 +24,8 @@ import java.util.stream.Collectors;
 
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.*;
 import org.springframework.security.core.Authentication;
@@ -39,6 +34,8 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class UserServiceImpl implements UserService {
+    private static final Logger LOGGER = LoggerFactory.getLogger(UserServiceImpl.class);
+
     private final UserRepository userRepository;
     private final ModelMapper modelMapper;
     private final PrivateMessageRepository privateMessageRepository;
@@ -46,6 +43,8 @@ public class UserServiceImpl implements UserService {
     private final MovieCommentRepository movieCommentRepository;
     private final MovieCommentMapper movieCommentMapper;
     private final UserMapper userMapper;
+    private final NotificationRepository notificationRepository;
+    private final NotificationMapper notificationMapper;
 
     public static <D, T> Page<D> mapEntityPageToDtoPage(Page<T> entities, Class<D> dtoClass, ModelMapper mapper) {
         List<D> dtoList = entities.getContent().stream()
@@ -55,7 +54,7 @@ public class UserServiceImpl implements UserService {
         return new PageImpl<>(dtoList, entities.getPageable(), entities.getTotalElements());
     }
 
-    public UserServiceImpl(UserRepository userRepository, ModelMapper modelMapper, PrivateMessageRepository privateMessageRepository, MovieRepository movieRepository, MovieCommentRepository movieCommentRepository, MovieCommentMapper movieCommentMapper, UserMapper userMapper) {
+    public UserServiceImpl(UserRepository userRepository, ModelMapper modelMapper, PrivateMessageRepository privateMessageRepository, MovieRepository movieRepository, MovieCommentRepository movieCommentRepository, MovieCommentMapper movieCommentMapper, UserMapper userMapper, NotificationRepository notificationRepository, NotificationMapper notificationMapper) {
         this.userRepository = userRepository;
         this.modelMapper = modelMapper;
         this.privateMessageRepository = privateMessageRepository;
@@ -63,6 +62,8 @@ public class UserServiceImpl implements UserService {
         this.movieCommentRepository = movieCommentRepository;
         this.movieCommentMapper = movieCommentMapper;
         this.userMapper = userMapper;
+        this.notificationRepository = notificationRepository;
+        this.notificationMapper = notificationMapper;
     }
 
     @Override
@@ -223,6 +224,7 @@ public class UserServiceImpl implements UserService {
         if (Objects.equals(requester.getId(), requested.getId()))
             return;
         requested.getFriendRequests().add(requester);
+        createNotification(requested.getId(), NotificationType.FRIEND_REQUEST, requester.getUuid().toString());
         userRepository.save(requested);
     }
 
@@ -288,13 +290,14 @@ public class UserServiceImpl implements UserService {
 
     @Transactional
     public void sendMessage(Long fromId, Long toId, String messageStr) {
+        User sender = userRepository.findById(fromId).orElseThrow(UserNotFoundException::new);
+        User receiver = userRepository.findById(toId).orElseThrow(UserNotFoundException::new);
         PrivateMessage message = new PrivateMessage();
-        // message.setFromUserId(fromId);
-        message.setFromUser( userRepository.findById(fromId).orElseThrow(UserNotFoundException::new) );
-        // message.setToUserId(toId);
-        message.setToUser( userRepository.findById(toId).orElseThrow(UserNotFoundException::new) );
+        message.setFromUser( sender );
+        message.setToUser( receiver );
         message.setSentAtTimestampSeconds(Instant.now().getEpochSecond());
         message.setMessage(messageStr);
+        createNotification(receiver.getId(), NotificationType.NEW_MESSAGE, sender.getUuid().toString());
         privateMessageRepository.save(message);
     }
 
@@ -440,6 +443,63 @@ public class UserServiceImpl implements UserService {
     public Page<MovieCommentDTO> getMovieCommentReported(Boolean isReported, int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("sentAtTimestampSeconds").descending());
         return movieCommentMapper.toDTOPage( movieCommentRepository.findByIsReported(isReported, pageable));
+    }
+
+    @Override
+    public NotificationDTO createNotification(Long userId, NotificationType type, String content) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException("user_not_found"));
+        Notification notification = new Notification();
+
+        notification.setUser(user);
+        notification.setType(type);
+        notification.setContent(content);
+        notification.setTime( System.currentTimeMillis() );
+
+        Notification res = notificationRepository.save(notification);
+        return notificationMapper.toDTO(res);
+    }
+
+    @Override
+    public NotificationDTO getNotification(Long userId, Long notificationId) {
+        Optional<Notification> notificationOpt = notificationRepository.findByIdAndUserId(notificationId, userId);
+        return notificationMapper.toDTO(notificationOpt.orElseThrow(() -> new ResourceNotFoundException("notification_not_found")));
+    }
+
+    @Override
+    public Page<NotificationDTO> getUserNotifications(Long userId, int pageNumber, int pageSize) {
+        Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.by(Sort.Direction.DESC, "time"));
+        Page<Notification> dto = notificationRepository.findByUserId(userId, pageable);
+        return notificationMapper.toDTOPage(dto);
+    }
+
+    @Override
+    public void userNotifiedBefore(Long userId, Long time) {
+        int page = 0;
+        int size = 500;
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Notification> notificationsPage;
+
+        // Loop through the pages and apply the update
+        do {
+            notificationsPage = notificationRepository.findByUserIdAndTimeBefore(userId, time, pageable);
+
+            if (!notificationsPage.isEmpty()) {
+                notificationRepository.setLikedTrueBeforeTime(time, pageable.getPageSize());
+            }
+
+            page++;
+            pageable = PageRequest.of(page, size);
+
+        } while (notificationsPage.hasNext());
+    }
+
+    @Override
+    public void userNotified(Long userId, Long notificationId) {
+        Notification notification = notificationRepository.findByIdAndUserId(notificationId, userId).orElseThrow(()->
+            new ResourceNotFoundException("notification_not_found")
+        );
+        notification.setNotified(true);
+        notificationRepository.save(notification);
     }
 
 }

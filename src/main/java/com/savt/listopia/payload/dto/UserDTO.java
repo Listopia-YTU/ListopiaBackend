@@ -22,4 +22,6 @@ public class UserDTO {
 
     private Long lastOnline;
     private Long createdAt;
+
+    private String profilePicture; // will be null for now.
 }

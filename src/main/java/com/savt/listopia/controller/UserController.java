@@ -8,6 +8,7 @@ import com.savt.listopia.exception.userException.UserNotFoundException;
 import com.savt.listopia.model.movie.Movie;
 import com.savt.listopia.payload.APIResponse;
 import com.savt.listopia.payload.dto.MovieFrontDTO;
+import com.savt.listopia.payload.dto.NotificationDTO;
 import com.savt.listopia.payload.dto.PrivateMessageDTO;
 import com.savt.listopia.payload.dto.UserDTO;
 import com.savt.listopia.payload.request.ChangeBiography;
@@ -225,4 +226,47 @@ public class UserController {
         return ResponseEntity.ok(messageDTOS);
     }
 
+    //////
+    //// NOTIFICATIONS
+    //////
+
+    @GetMapping("/notifications/{notificationId}")
+    public ResponseEntity<NotificationDTO> getNotification(@PathVariable String notificationId) {
+        Long userId = userService.getCurrentUserIdOrThrow();
+        Long id = Long.valueOf(notificationId);
+        NotificationDTO dto = userService.getNotification(userId, id);
+        return ResponseEntity.ok(dto);
+    }
+
+    @GetMapping("/notifications")
+    public ResponseEntity<Page<NotificationDTO>> getNotifications(
+            @RequestParam(name = "pageNumber", defaultValue = AppConstants.PAGE_NUMBER, required = false) Integer pageNumber,
+            @Max(50) @RequestParam(name = "pageSize", defaultValue = AppConstants.PAGE_SIZE, required = false) Integer pageSize
+    ) {
+        Long userId = userService.getCurrentUserIdOrThrow();
+        Page<NotificationDTO> dto = userService.getUserNotifications(
+                userId,
+                pageNumber,
+                pageSize
+        );
+        return ResponseEntity.ok(dto);
+    }
+
+    @PutMapping("/notifications")
+    public ResponseEntity<APIResponse> notifiedUser(
+            @RequestParam(name = "notifiedBefore") Long timeBefore
+    ) {
+        Long userId = userService.getCurrentUserIdOrThrow();
+        userService.userNotifiedBefore(userId, timeBefore);
+        return ResponseEntity.ok(APIResponse.success("user_notified"));
+    }
+
+    @PutMapping("/notifications/{notificationId}")
+    public ResponseEntity<APIResponse> notifiedUser(
+            @PathVariable String notificationId) {
+        Long userId = userService.getCurrentUserIdOrThrow();
+        Long id = Long.valueOf(notificationId);
+        userService.userNotified(userId, id);
+        return ResponseEntity.ok(APIResponse.success("notified"));
+    }
 }
