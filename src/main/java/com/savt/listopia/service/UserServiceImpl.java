@@ -6,6 +6,7 @@ import com.savt.listopia.exception.userException.UserException;
 import com.savt.listopia.exception.userException.UserNotAuthorizedException;
 import com.savt.listopia.exception.userException.UserNotFoundException;
 import com.savt.listopia.mapper.MovieCommentMapper;
+import com.savt.listopia.mapper.MovieFrontMapper;
 import com.savt.listopia.mapper.NotificationMapper;
 import com.savt.listopia.mapper.UserMapper;
 import com.savt.listopia.model.movie.Movie;
@@ -45,6 +46,8 @@ public class UserServiceImpl implements UserService {
     private final UserMapper userMapper;
     private final NotificationRepository notificationRepository;
     private final NotificationMapper notificationMapper;
+    private final MovieFrontMapper movieFrontMapper;
+    private final MovieImageRepository movieImageRepository;
 
     public static <D, T> Page<D> mapEntityPageToDtoPage(Page<T> entities, Class<D> dtoClass, ModelMapper mapper) {
         List<D> dtoList = entities.getContent().stream()
@@ -54,7 +57,7 @@ public class UserServiceImpl implements UserService {
         return new PageImpl<>(dtoList, entities.getPageable(), entities.getTotalElements());
     }
 
-    public UserServiceImpl(UserRepository userRepository, ModelMapper modelMapper, PrivateMessageRepository privateMessageRepository, MovieRepository movieRepository, MovieCommentRepository movieCommentRepository, MovieCommentMapper movieCommentMapper, UserMapper userMapper, NotificationRepository notificationRepository, NotificationMapper notificationMapper) {
+    public UserServiceImpl(UserRepository userRepository, ModelMapper modelMapper, PrivateMessageRepository privateMessageRepository, MovieRepository movieRepository, MovieCommentRepository movieCommentRepository, MovieCommentMapper movieCommentMapper, UserMapper userMapper, NotificationRepository notificationRepository, NotificationMapper notificationMapper, MovieFrontMapper movieFrontMapper, MovieImageRepository movieImageRepository) {
         this.userRepository = userRepository;
         this.modelMapper = modelMapper;
         this.privateMessageRepository = privateMessageRepository;
@@ -64,6 +67,8 @@ public class UserServiceImpl implements UserService {
         this.userMapper = userMapper;
         this.notificationRepository = notificationRepository;
         this.notificationMapper = notificationMapper;
+        this.movieFrontMapper = movieFrontMapper;
+        this.movieImageRepository = movieImageRepository;
     }
 
     @Override
@@ -181,7 +186,8 @@ public class UserServiceImpl implements UserService {
     public Page<MovieFrontDTO> getUserLikedMovies(Long userId, int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
         Page<Movie> movies = userRepository.findLikedMoviesByUserId(userId, pageable);
-        return mapEntityPageToDtoPage(movies, MovieFrontDTO.class, modelMapper);
+        return movieFrontMapper.toDTOPage(movies, movieImageRepository);
+        // return mapEntityPageToDtoPage(movies, MovieFrontDTO.class, modelMapper);
     }
 
     @Transactional
