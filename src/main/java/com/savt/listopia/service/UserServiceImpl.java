@@ -1,5 +1,7 @@
 package com.savt.listopia.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.savt.listopia.exception.APIException;
 import com.savt.listopia.exception.ResourceNotFoundException;
 import com.savt.listopia.exception.userException.UserException;
@@ -47,6 +49,8 @@ public class UserServiceImpl implements UserService {
     private final MovieImageRepository movieImageRepository;
     private final UserActivityRepository userActivityRepository;
     private final UserActivityMapperImpl userActivityMapperImpl;
+    private final ObjectMapper objectMapper;
+    private final MovieServiceImpl movieServiceImpl;
 
     public static <D, T> Page<D> mapEntityPageToDtoPage(Page<T> entities, Class<D> dtoClass, ModelMapper mapper) {
         List<D> dtoList = entities.getContent().stream()
@@ -56,7 +60,7 @@ public class UserServiceImpl implements UserService {
         return new PageImpl<>(dtoList, entities.getPageable(), entities.getTotalElements());
     }
 
-    public UserServiceImpl(UserRepository userRepository, ModelMapper modelMapper, PrivateMessageRepository privateMessageRepository, MovieRepository movieRepository, MovieCommentRepository movieCommentRepository, MovieCommentMapper movieCommentMapper, UserMapper userMapper, NotificationRepository notificationRepository, NotificationMapper notificationMapper, MovieFrontMapper movieFrontMapper, MovieImageRepository movieImageRepository, UserActivityRepository userActivityRepository, UserActivityMapperImpl userActivityMapperImpl) {
+    public UserServiceImpl(UserRepository userRepository, ModelMapper modelMapper, PrivateMessageRepository privateMessageRepository, MovieRepository movieRepository, MovieCommentRepository movieCommentRepository, MovieCommentMapper movieCommentMapper, UserMapper userMapper, NotificationRepository notificationRepository, NotificationMapper notificationMapper, MovieFrontMapper movieFrontMapper, MovieImageRepository movieImageRepository, UserActivityRepository userActivityRepository, UserActivityMapperImpl userActivityMapperImpl, ObjectMapper objectMapper, MovieServiceImpl movieServiceImpl) {
         this.userRepository = userRepository;
         this.modelMapper = modelMapper;
         this.privateMessageRepository = privateMessageRepository;
@@ -70,6 +74,8 @@ public class UserServiceImpl implements UserService {
         this.movieImageRepository = movieImageRepository;
         this.userActivityRepository = userActivityRepository;
         this.userActivityMapperImpl = userActivityMapperImpl;
+        this.objectMapper = objectMapper;
+        this.movieServiceImpl = movieServiceImpl;
     }
 
     @Override
@@ -205,6 +211,14 @@ public class UserServiceImpl implements UserService {
                 userRepository.save(user);
                 movie.setLikeCount(movie.getLikeCount() + 1);
                 movieRepository.save(movie);
+                try {
+                    MovieFrontDTO dto = movieFrontMapper.toDTO(movie, movieImageRepository);
+                    String json = objectMapper.writeValueAsString(dto);
+                    createUserActivity(user.getId(), UserActivityType.MOVIE_LIKED, json);
+                } catch (JsonProcessingException e) {
+                    LOGGER.error("error creating json object for MovieFrontDTO movieId: {}", movie.getMovieId());
+                }
+
             }
         } else {
             user.getLikedMovies().remove(movie);
@@ -212,6 +226,86 @@ public class UserServiceImpl implements UserService {
             movie.setLikeCount(movie.getLikeCount() - 1);
             movieRepository.save(movie);
         }
+    }
+
+    @Override
+    public Page<MovieFrontDTO> getUserWatchlist(Long userId, int pageNumber, int pageSize) {
+        User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
+        Pageable pageable = PageRequest.of(pageNumber, pageSize);
+        Page<Movie> movies = userRepository.findWatchlistByUserId(user.getId(), pageable);
+        return movieFrontMapper.toDTOPage(movies, movieImageRepository);
+    }
+
+    @Override
+    public void userAddToWatchlist(Long userId, Integer movieId) {
+        User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
+        Movie movie = movieRepository.findById(movieId).orElseThrow(ResourceNotFoundException::new);
+
+        if (user.getWatchlist().contains(movie))
+            return;
+
+        user.getWatchlist().add(movie);
+        userRepository.save(user);
+
+        try {
+            MovieFrontDTO movieFrontDTO = movieFrontMapper.toDTO(movie, movieImageRepository);
+            String json = objectMapper.writeValueAsString(movieFrontDTO);
+            createUserActivity(user.getId(), UserActivityType.MOVIE_ADD_WATCHLIST, json);
+        } catch (JsonProcessingException e) {
+            LOGGER.error("failed to convert Movie to movieFrontDTO, movieId: {}", movie.getMovieId());
+        }
+    }
+
+    @Override
+    public void userDeleteFromWatchlist(Long userId, Integer movieId) {
+        User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
+        Movie movie = movieRepository.findById(movieId).orElseThrow(ResourceNotFoundException::new);
+
+        if (!user.getWatchlist().contains(movie))
+            return;
+
+        user.getWatchlist().remove(movie);
+        userRepository.save(user);
+    }
+
+    @Override
+    public Page<MovieFrontDTO> getUserWatched(Long userId, int pageNumber, int pageSize) {
+        User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
+        Pageable pageable = PageRequest.of(pageNumber, pageSize);
+        Page<Movie> movies = userRepository.findWatchedListByUserId(user.getId(), pageable);
+        return movieFrontMapper.toDTOPage(movies, movieImageRepository);
+    }
+
+    @Override
+    public void userAddToWatched(Long userId, Integer movieId) {
+        User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
+        Movie movie = movieRepository.findById(movieId).orElseThrow(ResourceNotFoundException::new);
+
+        if (user.getWatchedList().contains(movie))
+            return;
+
+        user.getWatchedList().add(movie);
+        userRepository.save(user);
+
+        try {
+            MovieFrontDTO movieFrontDTO = movieFrontMapper.toDTO(movie, movieImageRepository);
+            String json = objectMapper.writeValueAsString(movieFrontDTO);
+            createUserActivity(user.getId(), UserActivityType.MOVIE_ADD_WATCHED, json);
+        } catch (JsonProcessingException e) {
+            LOGGER.error("failed to convert Movie to movieFrontDTO, movieId: {}", movie.getMovieId());
+        }
+    }
+
+    @Override
+    public void userDeleteFromWatched(Long userId, Integer movieId) {
+        User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
+        Movie movie = movieRepository.findById(movieId).orElseThrow(ResourceNotFoundException::new);
+
+        if (!user.getWatchedList().contains(movie))
+            return;
+
+        user.getWatchedList().remove(movie);
+        userRepository.save(user);
     }
 
     @Transactional
@@ -225,10 +319,28 @@ public class UserServiceImpl implements UserService {
         userRepository.save(user);
         userRepository.save(friend);
 
-        createNotification(friend.getId(), NotificationType.BECOME_FRIENDS, user.getUuid().toString());
+        try {
+            String json = objectMapper.writeValueAsString( userMapper.toDTO(user) );
+            createNotification(friend.getId(), NotificationType.BECOME_FRIENDS, json);
+        } catch (JsonProcessingException e) {
+            LOGGER.error("error creating json object for UserDTO commentId: {}", user.getUuid());
+        }
 
-        createUserActivity(user.getId(), UserActivityType.BECOME_FRIENDS, friend.getUuid().toString());
-        createUserActivity(friend.getId(), UserActivityType.BECOME_FRIENDS, user.getUuid().toString());
+        try {
+            String json = objectMapper.writeValueAsString( userMapper.toDTO(friend) );
+            createUserActivity(user.getId(), UserActivityType.BECOME_FRIENDS, json);
+        } catch (JsonProcessingException e) {
+            LOGGER.error("error creating json object for UserDTO commentId: {}", friend.getUuid());
+        }
+
+        try {
+            String json = objectMapper.writeValueAsString( userMapper.toDTO(user) );
+            createUserActivity(friend.getId(), UserActivityType.BECOME_FRIENDS, json);
+        } catch (JsonProcessingException e) {
+            LOGGER.error("error creating json object for UserDTO commentId: {}", user.getUuid());
+        }
+
+        LOGGER.info("users become friends: {} - {}", user.getUuid(), friend.getUuid());
     }
 
     @Transactional
@@ -391,7 +503,16 @@ public class UserServiceImpl implements UserService {
 
         movieCommentRepository.save(comment);
 
-        return movieCommentToDTO(comment);
+        MovieCommentDTO dto = movieCommentToDTO(comment);
+
+        try {
+            String json = objectMapper.writeValueAsString(dto);
+            createUserActivity(commented.getId(), UserActivityType.MOVIE_COMMENT, json);
+        } catch (JsonProcessingException e) {
+            LOGGER.error("error creating json object for MovieCommentDTO commentId: {}", dto.getCommentId());
+        }
+
+        return dto;
     }
 
     @Transactional
@@ -460,7 +581,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public NotificationDTO createNotification(Long userId, NotificationType type, String content) {
+    public void createNotification(Long userId, NotificationType type, String content) {
         User user = userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException("user_not_found"));
         Notification notification = new Notification();
 
@@ -470,7 +591,7 @@ public class UserServiceImpl implements UserService {
         notification.setTime( System.currentTimeMillis() );
 
         Notification res = notificationRepository.save(notification);
-        return notificationMapper.toDTO(res);
+        notificationMapper.toDTO(res);
     }
 
     @Override

@@ -19,7 +19,6 @@ import jakarta.validation.constraints.Max;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -134,6 +133,10 @@ public class UserController {
         return ResponseEntity.ok(likedMovies);
     }
 
+    //////
+    //// MOVIE
+    //////
+
     @PutMapping("/movie/{movieId}/like")
     public ResponseEntity<APIResponse> likeMovie(
             @PathVariable Integer movieId,
@@ -147,6 +150,64 @@ public class UserController {
         userService.likeMovie(userId, movie, liked);
 
         return ResponseEntity.ok(APIResponse.builder().message("movie_like_updated").success(true).build());
+    }
+
+    @GetMapping("/uuid/{uuid}/watchlist")
+    public ResponseEntity<Page<MovieFrontDTO>> getUserWatchlist(
+            @PathVariable String uuid,
+            @RequestParam(name = "pageNumber", defaultValue = AppConstants.PAGE_NUMBER, required = false) Integer pageNumber,
+            @Max(50) @RequestParam(name = "pageSize", defaultValue = AppConstants.PAGE_SIZE, required = false) Integer pageSize
+    ) {
+        Long userId = userService.getUserIdFromUUID(UUID.fromString(uuid));
+        Page<MovieFrontDTO> movieFrontDTOPage = userService.getUserWatchlist(userId, pageNumber, pageSize);
+        return ResponseEntity.ok(movieFrontDTOPage);
+    }
+
+    @PostMapping("/movie/{movieId}/watchlist")
+    public ResponseEntity<APIResponse> addToWatchlist(
+            @PathVariable(name = "movieId") Integer movieId
+    ) {
+        Long userId = userService.getCurrentUserIdOrThrow();
+        userService.userAddToWatchlist(userId, movieId);
+        return ResponseEntity.ok(APIResponse.success("added_to_watchlist"));
+    }
+
+    @DeleteMapping("/movie/{movieId}/watchlist")
+    public ResponseEntity<APIResponse> removeFromWatchlist(
+            @PathVariable(name = "movieId") Integer movieId
+    ) {
+        Long userId = userService.getCurrentUserIdOrThrow();
+        userService.userDeleteFromWatchlist(userId, movieId);
+        return ResponseEntity.ok(APIResponse.success("deleted_from_watchlist"));
+    }
+
+    @GetMapping("/uuid/{uuid}/watched")
+    public ResponseEntity<Page<MovieFrontDTO>> getUserWatched(
+            @PathVariable String uuid,
+            @RequestParam(name = "pageNumber", defaultValue = AppConstants.PAGE_NUMBER, required = false) Integer pageNumber,
+            @Max(50) @RequestParam(name = "pageSize", defaultValue = AppConstants.PAGE_SIZE, required = false) Integer pageSize
+    ) {
+        Long userId = userService.getUserIdFromUUID(UUID.fromString(uuid));
+        Page<MovieFrontDTO> movieFrontDTOPage = userService.getUserWatched(userId, pageNumber, pageSize);
+        return ResponseEntity.ok(movieFrontDTOPage);
+    }
+
+    @PostMapping("/movie/{movieId}/watched")
+    public ResponseEntity<APIResponse> addToWatched(
+            @PathVariable(name = "movieId") Integer movieId
+    ) {
+        Long userId = userService.getCurrentUserIdOrThrow();
+        userService.userAddToWatched(userId, movieId);
+        return ResponseEntity.ok(APIResponse.success("added_to_watched"));
+    }
+
+    @DeleteMapping("/movie/{movieId}/watched")
+    public ResponseEntity<APIResponse> removeFromWatched(
+            @PathVariable(name = "movieId") Integer movieId
+    ) {
+        Long userId = userService.getCurrentUserIdOrThrow();
+        userService.userDeleteFromWatched(userId, movieId);
+        return ResponseEntity.ok(APIResponse.success("deleted_from_watched"));
     }
 
     //////
