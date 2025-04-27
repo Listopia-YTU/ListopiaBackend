@@ -7,10 +7,7 @@ import com.savt.listopia.exception.userException.UserNotAuthorizedException;
 import com.savt.listopia.exception.userException.UserNotFoundException;
 import com.savt.listopia.model.movie.Movie;
 import com.savt.listopia.payload.APIResponse;
-import com.savt.listopia.payload.dto.MovieFrontDTO;
-import com.savt.listopia.payload.dto.NotificationDTO;
-import com.savt.listopia.payload.dto.PrivateMessageDTO;
-import com.savt.listopia.payload.dto.UserDTO;
+import com.savt.listopia.payload.dto.*;
 import com.savt.listopia.payload.request.ChangeBiography;
 import com.savt.listopia.payload.request.ChangePassword;
 import com.savt.listopia.repository.MovieRepository;
@@ -22,6 +19,7 @@ import jakarta.validation.constraints.Max;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -269,4 +267,20 @@ public class UserController {
         userService.userNotified(userId, id);
         return ResponseEntity.ok(APIResponse.success("notified"));
     }
+
+    //////
+    //// ACTIVITY
+    //////
+
+    @GetMapping("/uuid/{uuid}/activity")
+    public ResponseEntity<Page<UserActivityDTO>> getUserActivity(
+            @PathVariable String uuid,
+            @RequestParam(name = "pageNumber", defaultValue = AppConstants.PAGE_NUMBER, required = false) Integer pageNumber,
+            @Max(50) @RequestParam(name = "pageSize", defaultValue = AppConstants.PAGE_SIZE, required = false) Integer pageSize
+    ) {
+        Long userId = userService.getUserIdFromUUID(UUID.fromString(uuid));
+        Page<UserActivityDTO> activityDTOS = userService.getUserActivities(userId, pageNumber, pageSize);
+        return ResponseEntity.ok(activityDTOS);
+    }
+
 }

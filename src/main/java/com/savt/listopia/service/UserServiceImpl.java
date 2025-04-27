@@ -5,10 +5,7 @@ import com.savt.listopia.exception.ResourceNotFoundException;
 import com.savt.listopia.exception.userException.UserException;
 import com.savt.listopia.exception.userException.UserNotAuthorizedException;
 import com.savt.listopia.exception.userException.UserNotFoundException;
-import com.savt.listopia.mapper.MovieCommentMapper;
-import com.savt.listopia.mapper.MovieFrontMapper;
-import com.savt.listopia.mapper.NotificationMapper;
-import com.savt.listopia.mapper.UserMapper;
+import com.savt.listopia.mapper.*;
 import com.savt.listopia.model.movie.Movie;
 import com.savt.listopia.model.user.*;
 import com.savt.listopia.payload.dto.*;
@@ -48,6 +45,8 @@ public class UserServiceImpl implements UserService {
     private final NotificationMapper notificationMapper;
     private final MovieFrontMapper movieFrontMapper;
     private final MovieImageRepository movieImageRepository;
+    private final UserActivityRepository userActivityRepository;
+    private final UserActivityMapperImpl userActivityMapperImpl;
 
     public static <D, T> Page<D> mapEntityPageToDtoPage(Page<T> entities, Class<D> dtoClass, ModelMapper mapper) {
         List<D> dtoList = entities.getContent().stream()
@@ -57,7 +56,7 @@ public class UserServiceImpl implements UserService {
         return new PageImpl<>(dtoList, entities.getPageable(), entities.getTotalElements());
     }
 
-    public UserServiceImpl(UserRepository userRepository, ModelMapper modelMapper, PrivateMessageRepository privateMessageRepository, MovieRepository movieRepository, MovieCommentRepository movieCommentRepository, MovieCommentMapper movieCommentMapper, UserMapper userMapper, NotificationRepository notificationRepository, NotificationMapper notificationMapper, MovieFrontMapper movieFrontMapper, MovieImageRepository movieImageRepository) {
+    public UserServiceImpl(UserRepository userRepository, ModelMapper modelMapper, PrivateMessageRepository privateMessageRepository, MovieRepository movieRepository, MovieCommentRepository movieCommentRepository, MovieCommentMapper movieCommentMapper, UserMapper userMapper, NotificationRepository notificationRepository, NotificationMapper notificationMapper, MovieFrontMapper movieFrontMapper, MovieImageRepository movieImageRepository, UserActivityRepository userActivityRepository, UserActivityMapperImpl userActivityMapperImpl) {
         this.userRepository = userRepository;
         this.modelMapper = modelMapper;
         this.privateMessageRepository = privateMessageRepository;
@@ -69,6 +68,8 @@ public class UserServiceImpl implements UserService {
         this.notificationMapper = notificationMapper;
         this.movieFrontMapper = movieFrontMapper;
         this.movieImageRepository = movieImageRepository;
+        this.userActivityRepository = userActivityRepository;
+        this.userActivityMapperImpl = userActivityMapperImpl;
     }
 
     @Override
@@ -215,12 +216,19 @@ public class UserServiceImpl implements UserService {
 
     @Transactional
     public void MakeFriends(Long userId, Long friendId) {
-        User user = userRepository.findById(userId).orElseThrow();
-        User friend = userRepository.findById(friendId).orElseThrow();
+        User user = userRepository.findById(userId).orElseThrow(ResourceNotFoundException::new);
+        User friend = userRepository.findById(friendId).orElseThrow(ResourceNotFoundException::new);
+
         user.getFriends().add(friend);
         friend.getFriends().add(user);
+
         userRepository.save(user);
         userRepository.save(friend);
+
+        createNotification(friend.getId(), NotificationType.BECOME_FRIENDS, user.getUuid().toString());
+
+        createUserActivity(user.getId(), UserActivityType.BECOME_FRIENDS, friend.getUuid().toString());
+        createUserActivity(friend.getId(), UserActivityType.BECOME_FRIENDS, user.getUuid().toString());
     }
 
     @Transactional
@@ -506,6 +514,25 @@ public class UserServiceImpl implements UserService {
         );
         notification.setNotified(true);
         notificationRepository.save(notification);
+    }
+
+    @Override
+    public void createUserActivity(Long userId, UserActivityType type, String content) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException("user_not_found"));
+
+        UserActivity activity = new UserActivity();
+        activity.setUser(user);
+        activity.setType(type);
+        activity.setTime(System.currentTimeMillis());
+
+        userActivityRepository.save(activity);
+    }
+
+    @Override
+    public Page<UserActivityDTO> getUserActivities(Long userId, int pageNumber, int pageSize) {
+        Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.by(Sort.Direction.DESC, "time"));
+        Page<UserActivity> page = userActivityRepository.findByUserId(userId, pageable);
+        return userActivityMapperImpl.toDTOPage(page);
     }
 
 }
