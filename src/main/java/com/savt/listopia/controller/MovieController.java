@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/v1")
 @Validated
 public class MovieController {
     private final MovieService movieService;
@@ -61,27 +61,27 @@ public class MovieController {
         return new ResponseEntity<>(movieFrontResponse, HttpStatus.OK);
     }
 
-    @PutMapping("/movies/{movieId}")
+    @PutMapping("/admin/movies/{movieId}")
     public ResponseEntity<MovieDTO> updateMovie(@PathVariable Integer movieId,
                                                 @RequestBody MovieDTO movieDTO) {
         MovieDTO savedMovieDTO = movieService.updateMovie(movieId, movieDTO);
         return new ResponseEntity<>(savedMovieDTO, HttpStatus.OK);
     }
 
-    @PostMapping("/movies/{movieId}/translations")
+    @PostMapping("/admin/movies/{movieId}/translations")
     public ResponseEntity<MovieTranslationDTO> addTranslation(@PathVariable Integer movieId
             , @RequestBody MovieTranslationDTO movieTranslationDTO) {
         MovieTranslationDTO savedMovieTranslationDTO = movieService.addTranslation(movieId, movieTranslationDTO);
         return new ResponseEntity<>(savedMovieTranslationDTO, HttpStatus.CREATED);
     }
 
-    @DeleteMapping("/movies/{movieId}/translations/{translationId}")
+    @DeleteMapping("/admin/movies/{movieId}/translations/{translationId}")
     public ResponseEntity<MovieTranslationDTO> deleteTranslation(@PathVariable Integer movieId, @PathVariable Long translationId) {
         MovieTranslationDTO deletedMovieTranslationDTO = movieService.deleteTranslation(movieId, translationId);
         return new ResponseEntity<>(deletedMovieTranslationDTO, HttpStatus.OK);
     }
 
-    @GetMapping("/movies/{movieId}/fetch")
+    @PutMapping("/admin/movies/{movieId}/fetch")
     public ResponseEntity<MovieDTO> fetchFromExternalDb(@PathVariable Integer movieId) {
         MovieDTO fetchedMovieDTO = movieService.fetchFromExternalDb(movieId);
         return new ResponseEntity<>(fetchedMovieDTO, HttpStatus.OK);
