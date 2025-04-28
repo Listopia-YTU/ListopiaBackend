@@ -24,7 +24,7 @@ public class User {
     @Column(unique = true)
     String username;
 
-    @Column(columnDefinition = "TEXT", length = 128)
+    @Column(columnDefinition = "TEXT")
     String biography = "";
 
     String firstName;
@@ -35,7 +35,7 @@ public class User {
 
     String hashedPassword;
 
-    private String profilePicture; // will be null for now.
+    private String profilePicture;
 
     @Enumerated(EnumType.STRING)
     private UserRole role = UserRole.USER;
