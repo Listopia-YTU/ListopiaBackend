@@ -99,6 +99,7 @@ public class UserServiceImpl implements UserService {
         user.setHashedPassword(hashedPassword);
         user.setCreatedAt( System.currentTimeMillis() );
         user.setLastOnline( System.currentTimeMillis() );
+        user.setProfilePicture("https://i.pinimg.com/736x/c0/74/9b/c0749b7cc401421662ae901ec8f9f660.jpg");
 
         try {
             userRepository.save(user);
