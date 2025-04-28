@@ -283,8 +283,12 @@ public class UserServiceImpl implements UserService {
         if (user.getWatchedList().contains(movie))
             return;
 
+        movie.setWatchCount(movie.getWatchCount() + 1);
+        movieRepository.save(movie);
+
         user.getWatchedList().add(movie);
         userRepository.save(user);
+
 
         try {
             MovieFrontDTO movieFrontDTO = movieFrontMapper.toDTO(movie, movieImageRepository);
@@ -302,6 +306,11 @@ public class UserServiceImpl implements UserService {
 
         if (!user.getWatchedList().contains(movie))
             return;
+
+        if (movie.getWatchCount() != 0){
+            movie.setWatchCount(movie.getWatchCount() - 1);
+            movieRepository.save(movie);
+        }
 
         user.getWatchedList().remove(movie);
         userRepository.save(user);
