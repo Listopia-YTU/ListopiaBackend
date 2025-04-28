@@ -15,24 +15,24 @@ import org.springframework.web.bind.annotation.*;
 import java.io.IOException;
 
 @RestController
-@RequestMapping("/api/test")
+@RequestMapping("/api/v1/admin/fetch")
 public class FetchController {
     @Autowired
     private FetchUtil fetchUtil;
 
-    @PostMapping("/fetch/genres")
+    @PostMapping("genres")
     public ResponseEntity<String> fetchGenres() throws TmdbException {
         fetchUtil.fetchGenres();
         return new ResponseEntity<>("Fetched genres", HttpStatus.CREATED);
     }
 
-    @PostMapping("/fetch/genres/translations")
+    @PostMapping("genres/translations")
     public ResponseEntity<String> fetchGenreTranslation(@RequestParam(name = "language") String language) throws TmdbException {
         fetchUtil.fetchGenreTranslations(language);
         return new ResponseEntity<>("Fetched genre translations for language: " + language, HttpStatus.CREATED);
     }
 
-    @PostMapping("/fetch/movies")
+    @PostMapping("movies")
     public ResponseEntity<String> fetchMovies(@Min(1) @RequestParam(name = "startId", defaultValue = "1", required = false) Integer startId,
                                               @Max(1000001) @RequestParam(name = "endId", defaultValue = "100", required = false) Integer endId,
                                               @Min(0) @RequestParam(name = "minPopularity", defaultValue = "20", required = false) Integer minPopularity,
@@ -42,7 +42,7 @@ public class FetchController {
         return new ResponseEntity<>("Fetching movies is completed", HttpStatus.CREATED);
     }
 
-    @PostMapping("/fetch/persons")
+    @PostMapping("persons")
     public ResponseEntity<String> fetchPersons(@Min(1) @RequestParam(name = "startId", defaultValue = "1", required = false) Integer startId,
                                                @Max(1000001) @RequestParam(name = "endId", defaultValue = "100", required = false) Integer endId,
                                                @RequestParam(name = "downloadImages", defaultValue = "false", required = false) Boolean downloadImages) throws IOException {
@@ -50,25 +50,25 @@ public class FetchController {
         return new ResponseEntity<>("Fetching persons is completed", HttpStatus.CREATED);
     }
 
-    @PostMapping("/fetch/movies/{movieId}/images/backdrops")
+    @PostMapping("movies/{movieId}/images/backdrops")
     public ResponseEntity<String> downloadBackdrops(@PathVariable Integer movieId) throws TmdbException, IOException {
         fetchUtil.downloadBackdrops(movieId);
         return new ResponseEntity<>("Downloaded backdrops for movieId: " + movieId, HttpStatus.CREATED);
     }
 
-    @PostMapping("/fetch/movies/{movieId}/images/posters")
+    @PostMapping("movies/{movieId}/images/posters")
     public ResponseEntity<String> downloadPosters(@PathVariable Integer movieId) throws IOException {
         fetchUtil.downloadPosters(movieId);
         return new ResponseEntity<>("Downloaded posters for movieId: " + movieId, HttpStatus.CREATED);
     }
 
-    @PostMapping("/fetch/movies/{movieId}/images/logos")
+    @PostMapping("movies/{movieId}/images/logos")
     public ResponseEntity<String> downloadLogos(@PathVariable Integer movieId) throws IOException {
         fetchUtil.downloadLogos(movieId);
         return new ResponseEntity<>("Downloaded logos for movieId: " + movieId, HttpStatus.CREATED);
     }
 
-    @PostMapping("/fetch/movies/{movieId}/images/cast")
+    @PostMapping("movies/{movieId}/images/cast")
     public ResponseEntity<String> downloadCastImages(@PathVariable Integer movieId) throws IOException {
         fetchUtil.downloadMovieCastImages(movieId);
         return new ResponseEntity<>("Downloaded cast images for movieId: " + movieId, HttpStatus.CREATED);
