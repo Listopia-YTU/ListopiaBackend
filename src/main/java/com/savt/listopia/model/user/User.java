@@ -5,7 +5,6 @@ import com.savt.listopia.model.movie.Movie;
 import java.util.ArrayList;
 import java.util.List;
 
-import jakarta.annotation.Nullable;
 import jakarta.persistence.*;
 import java.util.UUID;
 import lombok.Data;
@@ -78,10 +77,13 @@ public class User {
     @ManyToMany
     @JoinTable(
             name = "user_friend_requests",
-            joinColumns = @JoinColumn(name = "user_id"),
-            inverseJoinColumns = @JoinColumn(name = "requested_friend_id")
+            joinColumns = @JoinColumn(name = "user_id"), // arkadaş olmak istenilen kişi (isim yanıltıcı)
+            inverseJoinColumns = @JoinColumn(name = "requested_friend_id") // arkadaş olmak istetyen kişi (isim yanıltııc)
     )
-    List<User> friendRequests = new ArrayList<>();
+    List<User> friendRequestsReceived = new ArrayList<>();
+
+    @ManyToMany(mappedBy = "friendRequestsReceived")
+    List<User> friendRequestsSent = new ArrayList<>();
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private List<Notification> notifications = new ArrayList<>();

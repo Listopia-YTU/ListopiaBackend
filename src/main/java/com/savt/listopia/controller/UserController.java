@@ -72,6 +72,10 @@ public class UserController {
         return ResponseEntity.ok(userDTO);
     }
 
+    //////
+    //// FRIEND
+    //////
+
     @PostMapping("/friend/add/{uuid}")
     public ResponseEntity<APIResponse> AddFriend(@Valid @PathVariable String uuid) {
         Long userId = userService.getCurrentUserId().orElseThrow(UserNotAuthorizedException::new);
@@ -100,13 +104,23 @@ public class UserController {
         return ResponseEntity.ok(APIResponse.builder().success(true).message("friend_rejected").build());
     }
 
-    @GetMapping("/friend/requests")
-    public ResponseEntity<Page<UserDTO>> FriendRequests(
+    @GetMapping("/friend/requests/received")
+    public ResponseEntity<Page<UserDTO>> userFriendRequestsReceived(
             @RequestParam(name = "pageNumber", defaultValue = AppConstants.PAGE_NUMBER, required = false) Integer pageNumber,
             @Max(50) @RequestParam(name = "pageSize", defaultValue = AppConstants.PAGE_SIZE, required = false) Integer pageSize
     ) {
         Long userId = userService.getCurrentUserId().orElseThrow(UserNotFoundException::new);
-        Page<UserDTO> requests = userService.UserFriendRequests(userId, pageNumber, pageSize);
+        Page<UserDTO> requests = userService.getUserFriendRequestsReceived(userId, pageNumber, pageSize);
+        return ResponseEntity.ok(requests);
+    }
+
+    @GetMapping("/friend/requests/sent")
+    public ResponseEntity<Page<UserDTO>> userFriendRequestsSent(
+            @RequestParam(name = "pageNumber", defaultValue = AppConstants.PAGE_NUMBER, required = false) Integer pageNumber,
+            @Max(50) @RequestParam(name = "pageSize", defaultValue = AppConstants.PAGE_SIZE, required = false) Integer pageSize
+    ) {
+        Long userId = userService.getCurrentUserId().orElseThrow(UserNotFoundException::new);
+        Page<UserDTO> requests = userService.getUserFriendRequestsSent(userId, pageNumber, pageSize);
         return ResponseEntity.ok(requests);
     }
 
