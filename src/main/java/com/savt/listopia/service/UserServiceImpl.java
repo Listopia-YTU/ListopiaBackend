@@ -348,7 +348,7 @@ public class UserServiceImpl implements UserService {
         User requested = userRepository.findByUuid(requestedUserUuid).orElseThrow(UserNotFoundException::new);
         if (Objects.equals(requester.getId(), requested.getId()))
             return;
-        requested.getFriendRequests().add(requester);
+        requested.getFriendRequestsReceived().add(requester);
         createNotification(requested.getId(), NotificationType.FRIEND_REQUEST, requester.getUuid().toString());
         userRepository.save(requested);
     }
@@ -357,9 +357,9 @@ public class UserServiceImpl implements UserService {
     public void AcceptFriend(Long accepterId, UUID acceptedUUID) {
         User accepter = userRepository.findById(accepterId).orElseThrow(UserNotFoundException::new);
         User accepted = userRepository.findByUuid(acceptedUUID).orElseThrow(UserNotFoundException::new);
-        if ( accepter.getFriendRequests().contains(accepted) ) {
+        if ( accepter.getFriendRequestsReceived().contains(accepted) ) {
             MakeFriends( accepter.getId(), accepted.getId() );
-            accepter.getFriendRequests().remove( accepted );
+            accepter.getFriendRequestsReceived().remove( accepted );
             userRepository.save(accepter);
         }
     }
@@ -369,8 +369,8 @@ public class UserServiceImpl implements UserService {
     public void rejectFriend(Long userId, UUID friendUUID) {
         User accepter = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
         User accepted = userRepository.findByUuid(friendUUID).orElseThrow(UserNotFoundException::new);
-        if ( accepter.getFriendRequests().contains(accepted) ) {
-            accepter.getFriendRequests().remove(accepted);
+        if ( accepter.getFriendRequestsReceived().contains(accepted) ) {
+            accepter.getFriendRequestsReceived().remove(accepted);
             userRepository.save(accepter);
         }
     }
@@ -391,9 +391,16 @@ public class UserServiceImpl implements UserService {
     }
 
     @Transactional
-    public Page<UserDTO> UserFriendRequests(Long userId, int page, int size) {
+    public Page<UserDTO> getUserFriendRequestsReceived(Long userId, int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
-        Page<User> users = userRepository.findFriendRequestsByUserId(userId, pageable);
+        Page<User> users = userRepository.findFriendRequestsReceivedByUserId(userId, pageable);
+        return mapEntityPageToDtoPage(users, UserDTO.class, modelMapper);
+    }
+
+    @Override
+    public Page<UserDTO> getUserFriendRequestsSent(Long userId, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<User> users = userRepository.findFriendRequestsSentByUserId(userId, pageable);
         return mapEntityPageToDtoPage(users, UserDTO.class, modelMapper);
     }
 

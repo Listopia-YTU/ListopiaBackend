@@ -48,7 +48,8 @@ public interface UserService {
     void rejectFriend(Long userId, UUID friendUUID);
     void removeFriend(Long userId, UUID friendUUID);
     @Transactional
-    Page<UserDTO> UserFriendRequests(Long userId, int page, int size);
+    Page<UserDTO> getUserFriendRequestsReceived(Long userId, int page, int size);
+    Page<UserDTO> getUserFriendRequestsSent(Long userId, int page, int size);
     @Transactional
     Page<UserDTO> UserFriends(Long userId, int page, int size);
 
