@@ -2,6 +2,7 @@ package com.savt.listopia.service.user;
 
 import com.savt.listopia.exception.ResourceNotFoundException;
 import com.savt.listopia.exception.userException.UserNotFoundException;
+import com.savt.listopia.mapper.PrivateMessageMapper;
 import com.savt.listopia.model.user.PrivateMessage;
 import com.savt.listopia.model.user.User;
 import com.savt.listopia.payload.dto.PrivateMessageDTO;
@@ -22,11 +23,13 @@ public class UserMessageServiceImpl implements UserMessageService {
     private final UserRepository userRepository;
     private final PrivateMessageRepository privateMessageRepository;
     private final NotificationService notificationService;
+    private final PrivateMessageMapper privateMessageMapper;
 
-    public UserMessageServiceImpl(UserRepository userRepository, PrivateMessageRepository privateMessageRepository, NotificationService notificationService) {
+    public UserMessageServiceImpl(UserRepository userRepository, PrivateMessageRepository privateMessageRepository, NotificationService notificationService, PrivateMessageMapper privateMessageMapper) {
         this.userRepository = userRepository;
         this.privateMessageRepository = privateMessageRepository;
         this.notificationService = notificationService;
+        this.privateMessageMapper = privateMessageMapper;
     }
 
     @Override
@@ -64,43 +67,26 @@ public class UserMessageServiceImpl implements UserMessageService {
 
     public Page<PrivateMessageDTO> getAllReportedMessages(int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("sentAtTimestampSeconds").descending());
-        return privateMessageRepository.findAllByIsReportedTrue(pageable)
-                .map(this::privateMessageToDTO);
-    }
-
-    private PrivateMessageDTO privateMessageToDTO(PrivateMessage message) {
-        PrivateMessageDTO dto = new PrivateMessageDTO();
-        dto.setId(message.getId());
-        // dto.setFromUserUUID(getUUIDFromUserId(message.getFromUserId()).toString());
-        dto.setFromUserUUID( message.getFromUser().getUuid().toString() );
-        // dto.setToUserUUID(getUUIDFromUserId(message.getToUserId()).toString());
-        dto.setToUserUUID( message.getToUser().getUuid().toString() );
-        dto.setSentAtTimestampSeconds(message.getSentAtTimestampSeconds());
-        dto.setMessage(message.getMessage());
-        return dto;
+        return privateMessageMapper.toDTOPage(privateMessageRepository.findAllByIsReportedTrue(pageable));
     }
 
     public Page<PrivateMessageDTO> getAllMessagesOfUserReceived(Long userId, int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("sentAtTimestampSeconds").descending());
-        return privateMessageRepository.findAllByToUserId(userId, pageable)
-                .map(this::privateMessageToDTO);
+        return privateMessageMapper.toDTOPage(privateMessageRepository.findAllByToUserId(userId, pageable));
     }
 
     public Page<PrivateMessageDTO> getAllMessagesUserSent(Long userId, int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("sentAtTimestampSeconds").descending());
-        return privateMessageRepository.findAllByFromUserId(userId, pageable)
-                .map(this::privateMessageToDTO);
+        return privateMessageMapper.toDTOPage(privateMessageRepository.findAllByFromUserId(userId, pageable));
     }
 
     public Page<PrivateMessageDTO> getAllMessagesSentTo(Long userId, Long toId, int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("sentAtTimestampSeconds").descending());
-        return privateMessageRepository.findAllByFromUserIdAndToUserId(userId, toId, pageable)
-                .map(this::privateMessageToDTO);
+        return privateMessageMapper.toDTOPage(privateMessageRepository.findAllByFromUserIdAndToUserId(userId, toId, pageable));
     }
 
     public Page<PrivateMessageDTO> getAllMessagesReceivedFrom(Long userId, Long fromId, int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("sentAtTimestampSeconds").descending());
-        return privateMessageRepository.findAllByFromUserIdAndToUserId(fromId, userId, pageable)
-                .map(this::privateMessageToDTO);
+        return privateMessageMapper.toDTOPage(privateMessageRepository.findAllByFromUserIdAndToUserId(fromId, userId, pageable));
     }
 }
