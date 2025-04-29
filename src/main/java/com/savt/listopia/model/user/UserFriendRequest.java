@@ -20,7 +20,7 @@ public class UserFriendRequest {
     @JoinColumn(name = "user_request_received")
     private User userRequestReceived;
 
-    Long timestamp;
+    private Long timestamp;
 
-    Boolean active = true;
+    private Boolean active = true;
 }

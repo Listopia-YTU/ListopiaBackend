@@ -39,19 +39,15 @@ public interface UserService {
     void userAddToWatched(Long userId, Integer movieId);
     void userDeleteFromWatched(Long userId, Integer movieId);
 
-    @Transactional
-    void MakeFriends(Long userId, Long friendId);
-    @Transactional
-    void UserFriendRequest(Long requestOwnerUserId, UUID requestedUserUuid);
-    @Transactional
-    void AcceptFriend(Long accepterId, UUID acceptedUUID);
-    void rejectFriend(Long userId, UUID friendUUID);
-    void removeFriend(Long userId, UUID friendUUID);
-    @Transactional
-    Page<UserDTO> getUserFriendRequestsReceived(Long userId, int page, int size);
-    Page<UserDTO> getUserFriendRequestsSent(Long userId, int page, int size);
-    @Transactional
-    Page<UserDTO> UserFriends(Long userId, int page, int size);
+    void makeFriends(Long receiverId, Long senderId);
+    void userSentRequestTo(Long requestOwnerUserId, UUID requestedUserUuid);
+    void userAcceptedFriend(Long accepterId, UUID requestId);
+    void userCancelFriendRequest(Long userId, UUID cancelledUserUuid);
+    void userRejectedFriend(Long userId, UUID friendUUID);
+    void userRemovedFriend(Long userId, UUID friendUUID);
+    Page<UserFriendRequestDTO> getUserFriendRequestsReceived(Long userId, int page, int size);
+    Page<UserFriendRequestDTO> getUserFriendRequestsSent(Long userId, int page, int size);
+    Page<UserDTO> getUserFriends(Long userId, int page, int size);
 
     @Transactional
     void userReportMessage(Long userId, Long messageId);

@@ -50,6 +50,8 @@ public class UserServiceImpl implements UserService {
     private final UserActivityRepository userActivityRepository;
     private final UserActivityMapperImpl userActivityMapperImpl;
     private final ObjectMapper objectMapper;
+    private final UserFriendRequestsRepository userFriendRequestsRepository;
+    private final UserFriendRequestMapper userFriendRequestMapper;
 
     public static <D, T> Page<D> mapEntityPageToDtoPage(Page<T> entities, Class<D> dtoClass, ModelMapper mapper) {
         List<D> dtoList = entities.getContent().stream()
@@ -59,7 +61,7 @@ public class UserServiceImpl implements UserService {
         return new PageImpl<>(dtoList, entities.getPageable(), entities.getTotalElements());
     }
 
-    public UserServiceImpl(UserRepository userRepository, ModelMapper modelMapper, PrivateMessageRepository privateMessageRepository, MovieRepository movieRepository, MovieCommentRepository movieCommentRepository, MovieCommentMapper movieCommentMapper, UserMapper userMapper, NotificationRepository notificationRepository, NotificationMapper notificationMapper, MovieFrontMapper movieFrontMapper, MovieImageRepository movieImageRepository, UserActivityRepository userActivityRepository, UserActivityMapperImpl userActivityMapperImpl, ObjectMapper objectMapper) {
+    public UserServiceImpl(UserRepository userRepository, ModelMapper modelMapper, PrivateMessageRepository privateMessageRepository, MovieRepository movieRepository, MovieCommentRepository movieCommentRepository, MovieCommentMapper movieCommentMapper, UserMapper userMapper, NotificationRepository notificationRepository, NotificationMapper notificationMapper, MovieFrontMapper movieFrontMapper, MovieImageRepository movieImageRepository, UserActivityRepository userActivityRepository, UserActivityMapperImpl userActivityMapperImpl, ObjectMapper objectMapper, UserFriendRequestsRepository userFriendRequestsRepository, UserFriendRequestMapper userFriendRequestMapper) {
         this.userRepository = userRepository;
         this.modelMapper = modelMapper;
         this.privateMessageRepository = privateMessageRepository;
@@ -74,6 +76,8 @@ public class UserServiceImpl implements UserService {
         this.userActivityRepository = userActivityRepository;
         this.userActivityMapperImpl = userActivityMapperImpl;
         this.objectMapper = objectMapper;
+        this.userFriendRequestsRepository = userFriendRequestsRepository;
+        this.userFriendRequestMapper = userFriendRequestMapper;
     }
 
     @Override
@@ -317,76 +321,145 @@ public class UserServiceImpl implements UserService {
     }
 
     @Transactional
-    public void MakeFriends(Long userId, Long friendId) {
-        User user = userRepository.findById(userId).orElseThrow(ResourceNotFoundException::new);
-        User friend = userRepository.findById(friendId).orElseThrow(ResourceNotFoundException::new);
+    public void makeFriends(Long receiverId, Long senderId) {
+        User userReceiver = userRepository.findById(receiverId).orElseThrow(ResourceNotFoundException::new);
+        User userSender = userRepository.findById(senderId).orElseThrow(ResourceNotFoundException::new);
 
-        user.getFriends().add(friend);
-        friend.getFriends().add(user);
+        userReceiver.getFriends().add(userSender);
+        userSender.getFriends().add(userReceiver);
 
-        userRepository.save(user);
-        userRepository.save(friend);
+        userRepository.save(userReceiver);
+        userRepository.save(userSender);
+
+        // Delete the requests from repo
+        Optional<UserFriendRequest> optReq1 = userFriendRequestsRepository.findByUserRequestSentAndUserRequestReceived(userReceiver, userSender);
+        optReq1.ifPresent(userFriendRequestsRepository::delete);
+
+        Optional<UserFriendRequest> optReq2 = userFriendRequestsRepository.findByUserRequestSentAndUserRequestReceived(userSender, userReceiver);
+        optReq2.ifPresent(userFriendRequestsRepository::delete);
 
         try {
-            String json = objectMapper.writeValueAsString( userMapper.toDTO(user) );
-            createNotification(friend.getId(), NotificationType.BECOME_FRIENDS, json);
+            String json = objectMapper.writeValueAsString( userMapper.toDTO(userReceiver) );
+            createNotification(userSender.getId(), NotificationType.BECOME_FRIENDS, json);
         } catch (JsonProcessingException e) {
-            LOGGER.error("error creating json object for UserDTO commentId: {}", user.getUuid());
+            LOGGER.error("error creating json object for UserDTO commentId: {}", userReceiver.getUuid());
         }
 
         try {
-            String json = objectMapper.writeValueAsString( userMapper.toDTO(friend) );
-            createUserActivity(user.getId(), UserActivityType.BECOME_FRIENDS, json);
+            String json = objectMapper.writeValueAsString( userMapper.toDTO(userSender) );
+            createUserActivity(userReceiver.getId(), UserActivityType.BECOME_FRIENDS, json);
         } catch (JsonProcessingException e) {
-            LOGGER.error("error creating json object for UserDTO commentId: {}", friend.getUuid());
+            LOGGER.error("error creating json object for UserDTO commentId: {}", userSender.getUuid());
         }
 
         try {
-            String json = objectMapper.writeValueAsString( userMapper.toDTO(user) );
-            createUserActivity(friend.getId(), UserActivityType.BECOME_FRIENDS, json);
+            String json = objectMapper.writeValueAsString( userMapper.toDTO(userReceiver) );
+            createUserActivity(userSender.getId(), UserActivityType.BECOME_FRIENDS, json);
         } catch (JsonProcessingException e) {
-            LOGGER.error("error creating json object for UserDTO commentId: {}", user.getUuid());
+            LOGGER.error("error creating json object for UserDTO commentId: {}", userReceiver.getUuid());
         }
 
-        LOGGER.info("users become friends: {} - {}", user.getUuid(), friend.getUuid());
+        LOGGER.info("users become friends: {} - {}", userReceiver.getUuid(), userSender.getUuid());
     }
 
     @Transactional
-    public void UserFriendRequest(Long requestOwnerUserId, UUID requestedUserUuid) {
+    public void userSentRequestTo(Long requestOwnerUserId, UUID requestedUserUuid) {
         User requester = userRepository.findById(requestOwnerUserId).orElseThrow(UserNotFoundException::new);
         User requested = userRepository.findByUuid(requestedUserUuid).orElseThrow(UserNotFoundException::new);
+
         if (Objects.equals(requester.getId(), requested.getId()))
             return;
-        requested.getFriendRequestsReceived().add(requester);
-        createNotification(requested.getId(), NotificationType.FRIEND_REQUEST, requester.getUuid().toString());
-        userRepository.save(requested);
+
+        Optional<UserFriendRequest> requestOptional = userFriendRequestsRepository.findByUserRequestSentAndUserRequestReceived(requester, requested);
+        Optional<UserFriendRequest> reverseRequestOptional = userFriendRequestsRepository.findByUserRequestSentAndUserRequestReceived(requested, requester);
+
+        // Check if other made request before
+        if ( reverseRequestOptional.isPresent() ) {
+            UserFriendRequest reverseUserFriendRequest = reverseRequestOptional.get();
+            if ( reverseUserFriendRequest.getActive() ) {
+                makeFriends(requester.getId(), requested.getId());
+                return;
+            }
+        }
+
+        // Check if already made request before.
+        if ( requestOptional.isPresent() ) {
+            UserFriendRequest userFriendRequest = requestOptional.get();
+            if ( userFriendRequest.getActive() )
+                return;
+
+            userFriendRequest.setActive(true);
+            userFriendRequest.setTimestamp(System.currentTimeMillis());
+            userFriendRequestsRepository.save(userFriendRequest);
+            return;
+        }
+
+        UserFriendRequest userFriendRequest = new UserFriendRequest();
+        userFriendRequest.setActive(true);
+        userFriendRequest.setTimestamp(System.currentTimeMillis());
+        userFriendRequest.setUserRequestSent(requester);
+        userFriendRequest.setUserRequestReceived(requester);
+
+        userFriendRequestsRepository.save(userFriendRequest);
     }
 
     @Transactional
-    public void AcceptFriend(Long accepterId, UUID acceptedUUID) {
+    public void userAcceptedFriend(Long accepterId, UUID acceptedUUID) {
         User accepter = userRepository.findById(accepterId).orElseThrow(UserNotFoundException::new);
         User accepted = userRepository.findByUuid(acceptedUUID).orElseThrow(UserNotFoundException::new);
-        if ( accepter.getFriendRequestsReceived().contains(accepted) ) {
-            MakeFriends( accepter.getId(), accepted.getId() );
-            accepter.getFriendRequestsReceived().remove( accepted );
-            userRepository.save(accepter);
-        }
+
+        if (Objects.equals(accepter.getId(), accepted.getId()))
+            return;
+
+        if ( accepter.getFriends().contains(accepted) )
+            return;
+
+        if ( accepted.getFriends().contains(accepter) )
+            return;
+
+        Optional<UserFriendRequest> requestOptional = userFriendRequestsRepository.findByUserRequestSentAndUserRequestReceived(accepted, accepter);
+        if ( requestOptional.isEmpty() )
+            return;
+
+        UserFriendRequest request = requestOptional.get();
+
+        if ( !request.getActive() )
+            return;
+
+        makeFriends(accepter.getId(), accepted.getId());
+    }
+
+    private void deactivateFriendRequest(Long senderId, UUID receiverUuid) {
+        User user = userRepository.findById(senderId).orElseThrow(UserNotFoundException::new);
+        User cancelled = userRepository.findByUuid(receiverUuid).orElseThrow(UserNotFoundException::new);
+
+        Optional<UserFriendRequest> requestOptional = userFriendRequestsRepository.findByUserRequestSentAndUserRequestReceived(user, cancelled);
+        if (requestOptional.isEmpty() )
+            return;
+
+        UserFriendRequest request = requestOptional.get();
+        if ( !request.getActive() )
+            return;
+
+        request.setActive(false);
+        userFriendRequestsRepository.save(request);
+
+    }
+
+    @Override
+    public void userCancelFriendRequest(Long userId, UUID cancelledUserUuid) {
+        deactivateFriendRequest(userId, cancelledUserUuid);
     }
 
     @Override
     @Transactional
-    public void rejectFriend(Long userId, UUID friendUUID) {
-        User accepter = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
-        User accepted = userRepository.findByUuid(friendUUID).orElseThrow(UserNotFoundException::new);
-        if ( accepter.getFriendRequestsReceived().contains(accepted) ) {
-            accepter.getFriendRequestsReceived().remove(accepted);
-            userRepository.save(accepter);
-        }
+    public void userRejectedFriend(Long rejecterId, UUID rejectedUUID) {
+        deactivateFriendRequest(rejecterId, rejectedUUID);
     }
 
     @Override
     @Transactional
-    public void removeFriend(Long userId, UUID friendUUID) {
+    public void userRemovedFriend(Long userId, UUID friendUUID) {
         User remover = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
         User lonely = userRepository.findByUuid(friendUUID).orElseThrow(UserNotFoundException::new);
         if ( remover.getFriends().contains(lonely) ) {
@@ -400,24 +473,26 @@ public class UserServiceImpl implements UserService {
     }
 
     @Transactional
-    public Page<UserDTO> getUserFriendRequestsReceived(Long userId, int page, int size) {
+    public Page<UserFriendRequestDTO> getUserFriendRequestsReceived(Long userId, int page, int size) {
+        User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
         Pageable pageable = PageRequest.of(page, size);
-        Page<User> users = userRepository.findFriendRequestsReceivedByUserId(userId, pageable);
-        return mapEntityPageToDtoPage(users, UserDTO.class, modelMapper);
+        Page<UserFriendRequest> usersRequested = userFriendRequestsRepository.findByUserRequestReceivedAndActive(user, true, pageable);
+        return userFriendRequestMapper.toDTOPage(usersRequested);
     }
 
     @Override
-    public Page<UserDTO> getUserFriendRequestsSent(Long userId, int page, int size) {
+    public Page<UserFriendRequestDTO> getUserFriendRequestsSent(Long userId, int page, int size) {
+        User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
         Pageable pageable = PageRequest.of(page, size);
-        Page<User> users = userRepository.findFriendRequestsSentByUserId(userId, pageable);
-        return mapEntityPageToDtoPage(users, UserDTO.class, modelMapper);
+        Page<UserFriendRequest> requests = userFriendRequestsRepository.findByUserRequestSentAndActive(user, true, pageable);
+        return userFriendRequestMapper.toDTOPage(requests);
     }
 
     @Transactional
-    public Page<UserDTO> UserFriends(Long userId, int page, int size) {
+    public Page<UserDTO> getUserFriends(Long userId, int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
         Page<User> userPage = userRepository.findFriendsByUserId(userId, pageable);
-        return mapEntityPageToDtoPage(userPage, UserDTO.class, modelMapper);
+        return userMapper.toDTOPage(userPage);
     }
 
     @Override
