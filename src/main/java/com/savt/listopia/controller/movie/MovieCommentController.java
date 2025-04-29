@@ -1,4 +1,4 @@
-package com.savt.listopia.controller;
+package com.savt.listopia.controller.movie;
 
 import com.savt.listopia.config.AppConstants;
 import com.savt.listopia.payload.dto.MovieCommentDTO;
@@ -6,7 +6,6 @@ import com.savt.listopia.payload.response.APIResponse;
 import com.savt.listopia.service.UserService;
 import com.savt.listopia.service.user.UserMovieService;
 import jakarta.validation.constraints.Max;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
