@@ -1,4 +1,4 @@
-package com.savt.listopia.util;
+package com.savt.listopia.util.automatic;
 
 import com.savt.listopia.model.core.image.ImageType;
 import com.savt.listopia.model.core.image.MovieImage;
@@ -20,7 +20,6 @@ import info.movito.themoviedbapi.tools.appendtoresponse.MovieAppendToResponse;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import java.io.FileOutputStream;
@@ -84,8 +83,6 @@ public class MovieFetcher {
                 movie.setMovieId(movieDb.getId());
                 movie.setWatchCount(0);
                 movie.setLikeCount(0);
-                movie.setRatingAverage(0.0);
-                movie.setRatingCount(0);
 
                 List<Translation> translations = movieDb.getTranslations().getTranslations()
                         .stream().filter(t -> t.getIso6391().equals("tr"))
