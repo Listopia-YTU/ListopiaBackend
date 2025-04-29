@@ -1,11 +1,13 @@
 package com.savt.listopia.controller;
 
 import com.savt.listopia.config.AppConstants;
+import com.savt.listopia.model.user.UserRole;
 import com.savt.listopia.payload.APIResponse;
 import com.savt.listopia.payload.dto.MovieCommentDTO;
 import com.savt.listopia.payload.dto.MovieDTO;
 import com.savt.listopia.payload.dto.MovieTranslationDTO;
 import com.savt.listopia.payload.response.MovieFrontResponse;
+import com.savt.listopia.service.AuthServiceImpl;
 import com.savt.listopia.service.MovieService;
 import com.savt.listopia.service.UserService;
 import jakarta.validation.constraints.Max;
@@ -23,10 +25,12 @@ import java.util.UUID;
 public class MovieController {
     private final MovieService movieService;
     private final UserService userService;
+    private final AuthServiceImpl authServiceImpl;
 
-    public MovieController(MovieService movieService, UserService userService) {
+    public MovieController(MovieService movieService, UserService userService, AuthServiceImpl authServiceImpl) {
         this.movieService = movieService;
         this.userService = userService;
+        this.authServiceImpl = authServiceImpl;
     }
 
     @GetMapping("/movies/{movieId}")
@@ -64,6 +68,7 @@ public class MovieController {
     @PutMapping("/admin/movies/{movieId}")
     public ResponseEntity<MovieDTO> updateMovie(@PathVariable Integer movieId,
                                                 @RequestBody MovieDTO movieDTO) {
+        authServiceImpl.requireRoleOrThrow(UserRole.MODERATOR);
         MovieDTO savedMovieDTO = movieService.updateMovie(movieId, movieDTO);
         return new ResponseEntity<>(savedMovieDTO, HttpStatus.OK);
     }
@@ -71,18 +76,21 @@ public class MovieController {
     @PostMapping("/admin/movies/{movieId}/translations")
     public ResponseEntity<MovieTranslationDTO> addTranslation(@PathVariable Integer movieId
             , @RequestBody MovieTranslationDTO movieTranslationDTO) {
+        authServiceImpl.requireRoleOrThrow(UserRole.MODERATOR);
         MovieTranslationDTO savedMovieTranslationDTO = movieService.addTranslation(movieId, movieTranslationDTO);
         return new ResponseEntity<>(savedMovieTranslationDTO, HttpStatus.CREATED);
     }
 
     @DeleteMapping("/admin/movies/{movieId}/translations/{translationId}")
     public ResponseEntity<MovieTranslationDTO> deleteTranslation(@PathVariable Integer movieId, @PathVariable Long translationId) {
+        authServiceImpl.requireRoleOrThrow(UserRole.MODERATOR);
         MovieTranslationDTO deletedMovieTranslationDTO = movieService.deleteTranslation(movieId, translationId);
         return new ResponseEntity<>(deletedMovieTranslationDTO, HttpStatus.OK);
     }
 
     @PutMapping("/admin/movies/{movieId}/fetch")
     public ResponseEntity<MovieDTO> fetchFromExternalDb(@PathVariable Integer movieId) {
+        authServiceImpl.requireRoleOrThrow(UserRole.ADMIN);
         MovieDTO fetchedMovieDTO = movieService.fetchFromExternalDb(movieId);
         return new ResponseEntity<>(fetchedMovieDTO, HttpStatus.OK);
     }
