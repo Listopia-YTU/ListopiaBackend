@@ -8,11 +8,11 @@ import lombok.NoArgsConstructor;
 public class PrivateMessageDTO {
     Long id;
 
-    String fromUserUUID;
+    UserDTO from;
 
-    String toUserUUID;
+    UserDTO recipient;
 
-    Long sentAtTimestampSeconds;
+    Long sentAt;
 
     String message;
 }
