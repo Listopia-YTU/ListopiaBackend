@@ -260,8 +260,6 @@ public class MovieServiceImpl implements MovieService {
         movie.setPopularity(movieFromDb.getPopularity());
         movie.setWatchCount(movieFromDb.getWatchCount());
         movie.setLikeCount(movieFromDb.getLikeCount());
-        movie.setRatingCount(movieFromDb.getRatingCount());
-        movie.setRatingAverage(movieFromDb.getRatingAverage());
 
         return modelMapper.map(movieRepository.save(movie), MovieDTO.class);
     }
@@ -346,8 +344,6 @@ public class MovieServiceImpl implements MovieService {
         movie.setPopularity(movieFromDb.getPopularity());
         movie.setWatchCount(movieFromDb.getWatchCount());
         movie.setLikeCount(movieFromDb.getLikeCount());
-        movie.setRatingCount(movieFromDb.getRatingCount());
-        movie.setRatingAverage(movieFromDb.getRatingAverage());
 
         ExternalIds externalIds = movieDb.getExternalIds();
         movie.setFacebookId(externalIds.getFacebookId());

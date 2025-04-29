@@ -84,8 +84,6 @@ public class MovieFetcher {
                 movie.setMovieId(movieDb.getId());
                 movie.setWatchCount(0);
                 movie.setLikeCount(0);
-                movie.setRatingAverage(0.0);
-                movie.setRatingCount(0);
 
                 List<Translation> translations = movieDb.getTranslations().getTranslations()
                         .stream().filter(t -> t.getIso6391().equals("tr"))
