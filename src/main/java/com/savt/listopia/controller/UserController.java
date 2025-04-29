@@ -79,15 +79,8 @@ public class UserController {
     @PostMapping("/friend/add/{uuid}")
     public ResponseEntity<APIResponse> AddFriend(@Valid @PathVariable String uuid) {
         Long userId = userService.getCurrentUserId().orElseThrow(UserNotAuthorizedException::new);
-        userService.userSentRequestTo(userId, UUID.fromString(uuid));
+        userService.userSentOrAcceptFriendRequest(userId, UUID.fromString(uuid));
         return ResponseEntity.ok(APIResponse.builder().success(true).message("friend_request_sent").build());
-    }
-
-    @PostMapping("/friend/accept/{uuid}")
-    public ResponseEntity<APIResponse> AcceptFriend(@Valid @PathVariable String uuid) {
-        Long userId = userService.getCurrentUserId().orElseThrow(UserNotFoundException::new);
-        userService.userAcceptedFriend(userId, UUID.fromString(uuid));
-        return ResponseEntity.ok(APIResponse.builder().success(true).message("friend_added").build());
     }
 
     @PostMapping("/friend/reject/{uuid}")
@@ -122,6 +115,13 @@ public class UserController {
         Long userId = userService.getCurrentUserId().orElseThrow(UserNotFoundException::new);
         Page<UserFriendRequestDTO> requests = userService.getUserFriendRequestsSent(userId, pageNumber, pageSize);
         return ResponseEntity.ok(requests);
+    }
+
+    @DeleteMapping("/friend/request/{uuid}")
+    public ResponseEntity<APIResponse> removeFriendRequest(@Valid @PathVariable String uuid) {
+        Long userId = userService.getCurrentUserId().orElseThrow(UserNotFoundException::new);
+        userService.userCancelFriendRequest(userId, UUID.fromString(uuid));
+        return ResponseEntity.ok(APIResponse.builder().success(true).message("friend_request_cancelled").build());
     }
 
     @GetMapping("/uuid/{uuid}/friends")

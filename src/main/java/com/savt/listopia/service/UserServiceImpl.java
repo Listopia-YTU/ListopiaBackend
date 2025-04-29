@@ -363,11 +363,20 @@ public class UserServiceImpl implements UserService {
     }
 
     @Transactional
-    public void userSentRequestTo(Long requestOwnerUserId, UUID requestedUserUuid) {
+    public void userSentOrAcceptFriendRequest(Long requestOwnerUserId, UUID requestedUserUuid) {
         User requester = userRepository.findById(requestOwnerUserId).orElseThrow(UserNotFoundException::new);
         User requested = userRepository.findByUuid(requestedUserUuid).orElseThrow(UserNotFoundException::new);
 
         if (Objects.equals(requester.getId(), requested.getId()))
+            return;
+
+        if (Objects.equals(requested.getId(), requester.getId()))
+            return;
+
+        if ( requester.getFriends().contains(requested) )
+            return;
+
+        if ( requested.getFriends().contains(requester) )
             return;
 
         Optional<UserFriendRequest> requestOptional = userFriendRequestsRepository.findByUserRequestSentAndUserRequestReceived(requester, requested);
@@ -401,32 +410,6 @@ public class UserServiceImpl implements UserService {
         userFriendRequest.setUserRequestReceived(requested);
 
         userFriendRequestsRepository.save(userFriendRequest);
-    }
-
-    @Transactional
-    public void userAcceptedFriend(Long accepterId, UUID acceptedUUID) {
-        User accepter = userRepository.findById(accepterId).orElseThrow(UserNotFoundException::new);
-        User accepted = userRepository.findByUuid(acceptedUUID).orElseThrow(UserNotFoundException::new);
-
-        if (Objects.equals(accepter.getId(), accepted.getId()))
-            return;
-
-        if ( accepter.getFriends().contains(accepted) )
-            return;
-
-        if ( accepted.getFriends().contains(accepter) )
-            return;
-
-        Optional<UserFriendRequest> requestOptional = userFriendRequestsRepository.findByUserRequestSentAndUserRequestReceived(accepted, accepter);
-        if ( requestOptional.isEmpty() )
-            return;
-
-        UserFriendRequest request = requestOptional.get();
-
-        if ( !request.getActive() )
-            return;
-
-        makeFriends(accepter.getId(), accepted.getId());
     }
 
     private void deactivateFriendRequest(Long senderId, UUID receiverUuid) {
