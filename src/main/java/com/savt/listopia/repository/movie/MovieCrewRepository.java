@@ -8,7 +8,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface MovieCrewRepository extends JpaRepository<MovieCrew, Integer> {
-    MovieCrew getMovieCrewByCrewId(Integer creditId);
-
     Page<MovieCrew> findAllByMovieMovieId(Integer movieId, Pageable pageDetails);
 }

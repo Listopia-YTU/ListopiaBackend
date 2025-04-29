@@ -15,6 +15,4 @@ public interface MovieImageRepository extends JpaRepository<MovieImage, Long> {
 
     @Query("SELECT i.filePath FROM MovieImage i WHERE i.type = :type AND i.movie.movieId = :movieId")
     String findMovieImageByMovieIdAndType(Integer movieId, Limit of, int type);
-
-    List<MovieImage> findAllByTypeAndMovieMovieId(Integer type, Integer movieId);
 }

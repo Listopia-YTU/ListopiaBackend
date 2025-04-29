@@ -39,7 +39,7 @@ public class UserServiceImpl implements UserService {
     private final UserActivityService userActivityService;
     private final NotificationService notificationService;
 
-    public UserServiceImpl(UserRepository userRepository, ModelMapper modelMapper, PrivateMessageRepository privateMessageRepository, MovieRepository movieRepository, MovieCommentRepository movieCommentRepository, MovieCommentMapper movieCommentMapper, UserMapper userMapper, NotificationRepository notificationRepository, NotificationMapper notificationMapper, MovieFrontMapper movieFrontMapper, MovieImageRepository movieImageRepository, UserActivityRepository userActivityRepository, UserActivityMapperImpl userActivityMapperImpl, ObjectMapper objectMapper, UserFriendRequestsRepository userFriendRequestsRepository, UserFriendRequestMapper userFriendRequestMapper, UserActivityService userActivityService, NotificationService notificationService) {
+    public UserServiceImpl(UserRepository userRepository, ModelMapper modelMapper, UserMapper userMapper, UserActivityService userActivityService, NotificationService notificationService) {
         this.userRepository = userRepository;
         this.modelMapper = modelMapper;
         this.userMapper = userMapper;
