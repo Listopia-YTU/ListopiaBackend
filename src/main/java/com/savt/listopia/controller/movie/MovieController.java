@@ -37,7 +37,7 @@ public class MovieController {
             @RequestParam(name = "sortBy", defaultValue = AppConstants.SORT_MOVIES_BY, required = false) String sortBy,
             @RequestParam(name = "sortOrder", defaultValue = AppConstants.SORT_DIR, required = false) String sortOrder,
             @RequestParam(name = "genre", required = false) String genre,
-            @RequestParam String word) {
+            @RequestParam(name = "word", required = false) String word) {
         MovieFrontResponse movieFrontResponse = movieService.getFrontMovies(pageNumber, pageSize, sortBy, sortOrder, genre, word);
         return new ResponseEntity<>(movieFrontResponse, HttpStatus.OK);
     }
