@@ -23,5 +23,5 @@ public class UserActivity {
     private String content;
 
     @Column(nullable = false)
-    Long time;
+    Long time = System.currentTimeMillis();
 }

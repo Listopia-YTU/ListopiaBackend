@@ -1,28 +1,21 @@
 package com.savt.listopia.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.savt.listopia.exception.APIException;
-import com.savt.listopia.exception.ResourceNotFoundException;
 import com.savt.listopia.exception.userException.UserException;
 import com.savt.listopia.exception.userException.UserNotAuthorizedException;
 import com.savt.listopia.exception.userException.UserNotFoundException;
 import com.savt.listopia.mapper.*;
-import com.savt.listopia.model.movie.Movie;
 import com.savt.listopia.model.user.*;
 import com.savt.listopia.payload.dto.*;
 import com.savt.listopia.repository.*;
 import com.savt.listopia.security.auth.AuthenticationToken;
+import com.savt.listopia.service.user.UserActivityService;
 import com.savt.listopia.util.PasswordUtil;
 
-import java.time.Instant;
-import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
-import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,53 +31,22 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final ModelMapper modelMapper;
-    private final PrivateMessageRepository privateMessageRepository;
-    private final MovieRepository movieRepository;
-    private final MovieCommentRepository movieCommentRepository;
-    private final MovieCommentMapper movieCommentMapper;
     private final UserMapper userMapper;
-    private final NotificationRepository notificationRepository;
-    private final NotificationMapper notificationMapper;
-    private final MovieFrontMapper movieFrontMapper;
-    private final MovieImageRepository movieImageRepository;
-    private final UserActivityRepository userActivityRepository;
-    private final UserActivityMapperImpl userActivityMapperImpl;
-    private final ObjectMapper objectMapper;
-    private final UserFriendRequestsRepository userFriendRequestsRepository;
-    private final UserFriendRequestMapper userFriendRequestMapper;
+    private final UserActivityService userActivityService;
+    private final NotificationService notificationService;
 
-    public static <D, T> Page<D> mapEntityPageToDtoPage(Page<T> entities, Class<D> dtoClass, ModelMapper mapper) {
-        List<D> dtoList = entities.getContent().stream()
-                .map(entity -> mapper.map(entity, dtoClass))
-                .collect(Collectors.toList());
-
-        return new PageImpl<>(dtoList, entities.getPageable(), entities.getTotalElements());
-    }
-
-    public UserServiceImpl(UserRepository userRepository, ModelMapper modelMapper, PrivateMessageRepository privateMessageRepository, MovieRepository movieRepository, MovieCommentRepository movieCommentRepository, MovieCommentMapper movieCommentMapper, UserMapper userMapper, NotificationRepository notificationRepository, NotificationMapper notificationMapper, MovieFrontMapper movieFrontMapper, MovieImageRepository movieImageRepository, UserActivityRepository userActivityRepository, UserActivityMapperImpl userActivityMapperImpl, ObjectMapper objectMapper, UserFriendRequestsRepository userFriendRequestsRepository, UserFriendRequestMapper userFriendRequestMapper) {
+    public UserServiceImpl(UserRepository userRepository, ModelMapper modelMapper, PrivateMessageRepository privateMessageRepository, MovieRepository movieRepository, MovieCommentRepository movieCommentRepository, MovieCommentMapper movieCommentMapper, UserMapper userMapper, NotificationRepository notificationRepository, NotificationMapper notificationMapper, MovieFrontMapper movieFrontMapper, MovieImageRepository movieImageRepository, UserActivityRepository userActivityRepository, UserActivityMapperImpl userActivityMapperImpl, ObjectMapper objectMapper, UserFriendRequestsRepository userFriendRequestsRepository, UserFriendRequestMapper userFriendRequestMapper, UserActivityService userActivityService, NotificationService notificationService) {
         this.userRepository = userRepository;
         this.modelMapper = modelMapper;
-        this.privateMessageRepository = privateMessageRepository;
-        this.movieRepository = movieRepository;
-        this.movieCommentRepository = movieCommentRepository;
-        this.movieCommentMapper = movieCommentMapper;
         this.userMapper = userMapper;
-        this.notificationRepository = notificationRepository;
-        this.notificationMapper = notificationMapper;
-        this.movieFrontMapper = movieFrontMapper;
-        this.movieImageRepository = movieImageRepository;
-        this.userActivityRepository = userActivityRepository;
-        this.userActivityMapperImpl = userActivityMapperImpl;
-        this.objectMapper = objectMapper;
-        this.userFriendRequestsRepository = userFriendRequestsRepository;
-        this.userFriendRequestMapper = userFriendRequestMapper;
+        this.userActivityService = userActivityService;
+        this.notificationService = notificationService;
     }
 
     @Override
     public UserDTO getUserByUsername(String username) {
         User user = userRepository.findByUsername(username).orElseThrow(UserNotFoundException::new);
         return userMapper.toDTO(user);
-        // return modelMapper.map(user, UserDTO.class);
     }
 
     public User registerUser(String firstname, String lastName, String email, String username, String plainPassword) {
@@ -158,10 +120,6 @@ public class UserServiceImpl implements UserService {
         return getCurrentUserId().orElseThrow(UserNotAuthorizedException::new);
     }
 
-    public UUID getUUIDFromUserId(Long userId) {
-        return userRepository.findById(userId).orElseThrow().getUuid();
-    }
-
     public void ChangeUsername(Long userId, String username) {
         if ( userRepository.existsByUsername(username) )
             throw new UserException("username_exists");
@@ -192,559 +150,22 @@ public class UserServiceImpl implements UserService {
         userRepository.save(user);
     }
 
-    @Transactional
-    public Page<MovieFrontDTO> getUserLikedMovies(Long userId, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size);
-        Page<Movie> movies = userRepository.findLikedMoviesByUserId(userId, pageable);
-        return movieFrontMapper.toDTOPage(movies, movieImageRepository);
-        // return mapEntityPageToDtoPage(movies, MovieFrontDTO.class, modelMapper);
-    }
-
-    @Transactional
-    public void likeMovie(Long userId, Movie movie, Boolean liked) {
-        User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
-
-        if (movie == null || !movieRepository.existsById(movie.getMovieId())) {
-            throw new APIException("movie_not_found");
-        }
-
-        if (liked) {
-            if (!user.getLikedMovies().contains(movie)) {
-                user.getLikedMovies().add(movie);
-                userRepository.save(user);
-                movie.setLikeCount(movie.getLikeCount() + 1);
-                movieRepository.save(movie);
-                try {
-                    MovieFrontDTO dto = movieFrontMapper.toDTO(movie, movieImageRepository);
-                    String json = objectMapper.writeValueAsString(dto);
-                    createUserActivity(user.getId(), UserActivityType.MOVIE_LIKED, json);
-                } catch (JsonProcessingException e) {
-                    LOGGER.error("error creating json object for MovieFrontDTO movieId: {}", movie.getMovieId());
-                }
-
-            }
-        } else {
-            user.getLikedMovies().remove(movie);
-            userRepository.save(user);
-            movie.setLikeCount(movie.getLikeCount() - 1);
-            movieRepository.save(movie);
-        }
-    }
-
-    @Override
-    public Page<MovieFrontDTO> getUserWatchlist(Long userId, int pageNumber, int pageSize) {
-        User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
-        Pageable pageable = PageRequest.of(pageNumber, pageSize);
-        Page<Movie> movies = userRepository.findWatchlistByUserId(user.getId(), pageable);
-        return movieFrontMapper.toDTOPage(movies, movieImageRepository);
-    }
-
-    @Override
-    public void userAddToWatchlist(Long userId, Integer movieId) {
-        User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
-        Movie movie = movieRepository.findById(movieId).orElseThrow(ResourceNotFoundException::new);
-
-        if (user.getWatchlist().contains(movie))
-            return;
-
-        user.getWatchlist().add(movie);
-        userRepository.save(user);
-
-        try {
-            MovieFrontDTO movieFrontDTO = movieFrontMapper.toDTO(movie, movieImageRepository);
-            String json = objectMapper.writeValueAsString(movieFrontDTO);
-            createUserActivity(user.getId(), UserActivityType.MOVIE_ADD_WATCHLIST, json);
-        } catch (JsonProcessingException e) {
-            LOGGER.error("failed to convert Movie to movieFrontDTO, movieId: {}", movie.getMovieId());
-        }
-    }
-
-    @Override
-    public void userDeleteFromWatchlist(Long userId, Integer movieId) {
-        User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
-        Movie movie = movieRepository.findById(movieId).orElseThrow(ResourceNotFoundException::new);
-
-        if (!user.getWatchlist().contains(movie))
-            return;
-
-        user.getWatchlist().remove(movie);
-        userRepository.save(user);
-    }
-
-    @Override
-    public Page<MovieFrontDTO> getUserWatched(Long userId, int pageNumber, int pageSize) {
-        User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
-        Pageable pageable = PageRequest.of(pageNumber, pageSize);
-        Page<Movie> movies = userRepository.findWatchedListByUserId(user.getId(), pageable);
-        return movieFrontMapper.toDTOPage(movies, movieImageRepository);
-    }
-
-    @Override
-    public void userAddToWatched(Long userId, Integer movieId) {
-        User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
-        Movie movie = movieRepository.findById(movieId).orElseThrow(ResourceNotFoundException::new);
-
-        if (user.getWatchedList().contains(movie))
-            return;
-
-        movie.setWatchCount(movie.getWatchCount() + 1);
-        movieRepository.save(movie);
-
-        user.getWatchedList().add(movie);
-        userRepository.save(user);
-
-
-        try {
-            MovieFrontDTO movieFrontDTO = movieFrontMapper.toDTO(movie, movieImageRepository);
-            String json = objectMapper.writeValueAsString(movieFrontDTO);
-            createUserActivity(user.getId(), UserActivityType.MOVIE_ADD_WATCHED, json);
-        } catch (JsonProcessingException e) {
-            LOGGER.error("failed to convert Movie to movieFrontDTO, movieId: {}", movie.getMovieId());
-        }
-    }
-
-    @Override
-    public void userDeleteFromWatched(Long userId, Integer movieId) {
-        User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
-        Movie movie = movieRepository.findById(movieId).orElseThrow(ResourceNotFoundException::new);
-
-        if (!user.getWatchedList().contains(movie))
-            return;
-
-        if (movie.getWatchCount() != 0){
-            movie.setWatchCount(movie.getWatchCount() - 1);
-            movieRepository.save(movie);
-        }
-
-        user.getWatchedList().remove(movie);
-        userRepository.save(user);
-    }
-
-    @Transactional
-    public void makeFriends(Long receiverId, Long senderId) {
-        User userReceiver = userRepository.findById(receiverId).orElseThrow(ResourceNotFoundException::new);
-        User userSender = userRepository.findById(senderId).orElseThrow(ResourceNotFoundException::new);
-
-        userReceiver.getFriends().add(userSender);
-        userSender.getFriends().add(userReceiver);
-
-        userRepository.save(userReceiver);
-        userRepository.save(userSender);
-
-        // Delete the requests from repo
-        Optional<UserFriendRequest> optReq1 = userFriendRequestsRepository.findByUserRequestSentAndUserRequestReceived(userReceiver, userSender);
-        optReq1.ifPresent(userFriendRequestsRepository::delete);
-
-        Optional<UserFriendRequest> optReq2 = userFriendRequestsRepository.findByUserRequestSentAndUserRequestReceived(userSender, userReceiver);
-        optReq2.ifPresent(userFriendRequestsRepository::delete);
-
-        try {
-            String json = objectMapper.writeValueAsString( userMapper.toDTO(userReceiver) );
-            createNotification(userSender.getId(), NotificationType.BECOME_FRIENDS, json);
-        } catch (JsonProcessingException e) {
-            LOGGER.error("error creating json object for UserDTO commentId: {}", userReceiver.getUuid());
-        }
-
-        try {
-            String json = objectMapper.writeValueAsString( userMapper.toDTO(userSender) );
-            createUserActivity(userReceiver.getId(), UserActivityType.BECOME_FRIENDS, json);
-        } catch (JsonProcessingException e) {
-            LOGGER.error("error creating json object for UserDTO commentId: {}", userSender.getUuid());
-        }
-
-        try {
-            String json = objectMapper.writeValueAsString( userMapper.toDTO(userReceiver) );
-            createUserActivity(userSender.getId(), UserActivityType.BECOME_FRIENDS, json);
-        } catch (JsonProcessingException e) {
-            LOGGER.error("error creating json object for UserDTO commentId: {}", userReceiver.getUuid());
-        }
-
-        LOGGER.info("users become friends: {} - {}", userReceiver.getUuid(), userSender.getUuid());
-    }
-
-    @Transactional
-    public void userSentOrAcceptFriendRequest(Long requestOwnerUserId, UUID requestedUserUuid) {
-        User requester = userRepository.findById(requestOwnerUserId).orElseThrow(UserNotFoundException::new);
-        User requested = userRepository.findByUuid(requestedUserUuid).orElseThrow(UserNotFoundException::new);
-
-        if (Objects.equals(requester.getId(), requested.getId()))
-            return;
-
-        if (Objects.equals(requested.getId(), requester.getId()))
-            return;
-
-        if ( requester.getFriends().contains(requested) )
-            return;
-
-        if ( requested.getFriends().contains(requester) )
-            return;
-
-        Optional<UserFriendRequest> requestOptional = userFriendRequestsRepository.findByUserRequestSentAndUserRequestReceived(requester, requested);
-        Optional<UserFriendRequest> reverseRequestOptional = userFriendRequestsRepository.findByUserRequestSentAndUserRequestReceived(requested, requester);
-
-        // Check if other made request before
-        if ( reverseRequestOptional.isPresent() ) {
-            UserFriendRequest reverseUserFriendRequest = reverseRequestOptional.get();
-            if ( reverseUserFriendRequest.getActive() ) {
-                makeFriends(requester.getId(), requested.getId());
-                return;
-            }
-        }
-
-        // Check if already made request before.
-        if ( requestOptional.isPresent() ) {
-            UserFriendRequest userFriendRequest = requestOptional.get();
-            if ( userFriendRequest.getActive() )
-                return;
-
-            userFriendRequest.setActive(true);
-            userFriendRequest.setTimestamp(System.currentTimeMillis());
-            userFriendRequestsRepository.save(userFriendRequest);
-            return;
-        }
-
-        UserFriendRequest userFriendRequest = new UserFriendRequest();
-        userFriendRequest.setActive(true);
-        userFriendRequest.setTimestamp(System.currentTimeMillis());
-        userFriendRequest.setUserRequestSent(requester);
-        userFriendRequest.setUserRequestReceived(requested);
-
-        userFriendRequestsRepository.save(userFriendRequest);
-    }
-
-    private void deactivateFriendRequest(Long senderId, UUID receiverUuid) {
-        User user = userRepository.findById(senderId).orElseThrow(UserNotFoundException::new);
-        User cancelled = userRepository.findByUuid(receiverUuid).orElseThrow(UserNotFoundException::new);
-
-        Optional<UserFriendRequest> requestOptional = userFriendRequestsRepository.findByUserRequestSentAndUserRequestReceived(user, cancelled);
-        if (requestOptional.isEmpty() )
-            return;
-
-        UserFriendRequest request = requestOptional.get();
-        if ( !request.getActive() )
-            return;
-
-        request.setActive(false);
-        userFriendRequestsRepository.save(request);
-
-    }
-
-    @Override
-    public void userCancelFriendRequest(Long userId, UUID cancelledUserUuid) {
-        deactivateFriendRequest(userId, cancelledUserUuid);
-    }
-
-    @Override
-    @Transactional
-    public void userRejectedFriend(Long rejecterId, UUID rejectedUUID) {
-        User receiver = userRepository.findById(rejecterId).orElseThrow(UserNotFoundException::new);
-        User sender = userRepository.findByUuid(rejectedUUID).orElseThrow(UserNotFoundException::new);
-
-        Optional<UserFriendRequest> requestOptional = userFriendRequestsRepository.findByUserRequestSentAndUserRequestReceived(sender, receiver);
-        if (requestOptional.isEmpty() )
-            return;
-
-        UserFriendRequest request = requestOptional.get();
-        if ( !request.getActive() )
-            return;
-
-        request.setActive(false);
-        userFriendRequestsRepository.save(request);
-    }
-
-    @Override
-    @Transactional
-    public void userRemovedFriend(Long userId, UUID friendUUID) {
-        User remover = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
-        User lonely = userRepository.findByUuid(friendUUID).orElseThrow(UserNotFoundException::new);
-        if ( remover.getFriends().contains(lonely) ) {
-            remover.getFriends().remove(lonely);
-            userRepository.save(remover);
-        }
-        if ( lonely.getFriends().contains(remover) ) {
-            lonely.getFriends().remove(remover);
-            userRepository.save(lonely);
-        }
-    }
-
-    @Transactional
-    public Page<UserFriendRequestDTO> getUserFriendRequestsReceived(Long userId, int page, int size) {
-        User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
-        Pageable pageable = PageRequest.of(page, size);
-        Page<UserFriendRequest> usersRequested = userFriendRequestsRepository.findByUserRequestReceivedAndActive(user, true, pageable);
-        return userFriendRequestMapper.toDTOPage(usersRequested);
-    }
-
-    @Override
-    public Page<UserFriendRequestDTO> getUserFriendRequestsSent(Long userId, int page, int size) {
-        User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
-        Pageable pageable = PageRequest.of(page, size);
-        Page<UserFriendRequest> requests = userFriendRequestsRepository.findByUserRequestSentAndActive(user, true, pageable);
-        return userFriendRequestMapper.toDTOPage(requests);
-    }
-
-    @Transactional
-    public Page<UserDTO> getUserFriends(Long userId, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size);
-        Page<User> userPage = userRepository.findFriendsByUserId(userId, pageable);
-        return userMapper.toDTOPage(userPage);
-    }
-
-    @Override
-    @Transactional
-    public void userReportMessage(Long userId, Long messageId) {
-         PrivateMessage msg = privateMessageRepository.findById(messageId).orElseThrow(() -> new UserNotFoundException("message_does_not_exists"));
-         if (msg.getToUser().getId().equals(userId)) {
-             markPrivateMessageReported(messageId);
-         }
-    }
-
-    @Transactional
-    public void sendMessage(Long fromId, Long toId, String messageStr) {
-        User sender = userRepository.findById(fromId).orElseThrow(UserNotFoundException::new);
-        User receiver = userRepository.findById(toId).orElseThrow(UserNotFoundException::new);
-        PrivateMessage message = new PrivateMessage();
-        message.setFromUser( sender );
-        message.setToUser( receiver );
-        message.setSentAtTimestampSeconds(Instant.now().getEpochSecond());
-        message.setMessage(messageStr);
-        createNotification(receiver.getId(), NotificationType.NEW_MESSAGE, sender.getUuid().toString());
-        privateMessageRepository.save(message);
-    }
-
-    @Transactional
-    public void markPrivateMessageReported(Long messageId) {
-        PrivateMessage msg = privateMessageRepository.findById(messageId).orElseThrow(ResourceNotFoundException::new);
-        msg.setIsReported(true);
-        privateMessageRepository.save(msg);
-    }
-
-    public Boolean isPrivateMessageReported(Long messageId) {
-        return privateMessageRepository.findPrivateMessageById(messageId).orElseThrow(ResourceNotFoundException::new).getIsReported();
-    }
-
-    public Page<PrivateMessageDTO> getAllReportedMessages(int page, int size) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by("sentAtTimestampSeconds").descending());
-        return privateMessageRepository.findAllByIsReportedTrue(pageable)
-                .map(this::privateMessageToDTO);
-    }
-
-    private PrivateMessageDTO privateMessageToDTO(PrivateMessage message) {
-        PrivateMessageDTO dto = new PrivateMessageDTO();
-        dto.setId(message.getId());
-        // dto.setFromUserUUID(getUUIDFromUserId(message.getFromUserId()).toString());
-        dto.setFromUserUUID( message.getFromUser().getUuid().toString() );
-        // dto.setToUserUUID(getUUIDFromUserId(message.getToUserId()).toString());
-        dto.setToUserUUID( message.getToUser().getUuid().toString() );
-        dto.setSentAtTimestampSeconds(message.getSentAtTimestampSeconds());
-        dto.setMessage(message.getMessage());
-        return dto;
-    }
-
-    public Page<PrivateMessageDTO> getAllMessagesOfUserReceived(Long userId, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by("sentAtTimestampSeconds").descending());
-        return privateMessageRepository.findAllByToUserId(userId, pageable)
-                .map(this::privateMessageToDTO);
-    }
-
-    public Page<PrivateMessageDTO> getAllMessagesUserSent(Long userId, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by("sentAtTimestampSeconds").descending());
-        return privateMessageRepository.findAllByFromUserId(userId, pageable)
-                .map(this::privateMessageToDTO);
-    }
-
-    public Page<PrivateMessageDTO> getAllMessagesSentTo(Long userId, Long toId, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by("sentAtTimestampSeconds").descending());
-        return privateMessageRepository.findAllByFromUserIdAndToUserId(userId, toId, pageable)
-                .map(this::privateMessageToDTO);
-    }
-
-    public Page<PrivateMessageDTO> getAllMessagesReceivedFrom(Long userId, Long fromId, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by("sentAtTimestampSeconds").descending());
-        return privateMessageRepository.findAllByFromUserIdAndToUserId(fromId, userId, pageable)
-                .map(this::privateMessageToDTO);
-    }
-
-    public MovieCommentDTO movieCommentToDTO(MovieComment comment) {
-        return movieCommentMapper.toDTO(comment);
-    }
-
-    @Transactional
-    public MovieCommentDTO createMovieComment(Long userId, Integer movieId, Boolean isSpoiler, String messageU) {
-        User commented = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
-        Movie movie = movieRepository.findById(movieId).orElseThrow(ResourceNotFoundException::new);
-
-        String message = messageU.trim();
-
-        if (message.isEmpty())
-            throw new APIException("message_cannot_be_null");
-
-        MovieComment comment = new MovieComment();
-        comment.setMovie(movie);
-        comment.setFromUser(commented);
-        comment.setIsSpoiler(isSpoiler);
-        comment.setSentAtTimestampSeconds(Instant.now().getEpochSecond());
-        comment.setMessage(message);
-
-        movieCommentRepository.save(comment);
-
-        MovieCommentDTO dto = movieCommentToDTO(comment);
-
-        try {
-            String json = objectMapper.writeValueAsString(dto);
-            createUserActivity(commented.getId(), UserActivityType.MOVIE_COMMENT, json);
-        } catch (JsonProcessingException e) {
-            LOGGER.error("error creating json object for MovieCommentDTO commentId: {}", dto.getCommentId());
-        }
-
-        return dto;
-    }
-
-    @Transactional
-    public void deleteMovieComment(Long requestedId, Long commentId) {
-        User user = userRepository.findById(requestedId).orElseThrow(UserNotAuthorizedException::new);
-        MovieComment comment = movieCommentRepository.findById(commentId).orElseThrow(ResourceNotFoundException::new);
-        if ( comment.getFromUser().equals(user) )
-            movieCommentRepository.deleteById(commentId);
-        else
-            throw new UserNotAuthorizedException();
-    }
-
-    @Override
-    public void reportMovieComment(Long commentId) {
-        Optional<MovieComment> commentOpt = movieCommentRepository.findById(commentId);
-        if ( commentOpt.isPresent() ) {
-            MovieComment comment = commentOpt.get();
-            comment.setIsReported(true);
-            movieCommentRepository.save(comment);
-        }
-    }
-
-    @Override
-    public MovieCommentDTO updateMovieComment(Long userId, Long commentId, Boolean isSpoiler, String messageU) {
-        User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
-        MovieComment comment = movieCommentRepository.findById(commentId).orElseThrow(ResourceNotFoundException::new);
-
-        if (!comment.getFromUser().equals(user))
-            throw new UserNotAuthorizedException();
-
-        String message = messageU.trim();
-
-        if (message.isEmpty())
-            throw new APIException("message_cannot_be_null");
-
-        comment.setIsSpoiler(isSpoiler);
-        comment.setMessage(message);
-        comment.setIsUpdated(true);
-        movieCommentRepository.save(comment);
-        return movieCommentToDTO(comment);
-    }
-
-    public MovieCommentDTO getMovieCommentById(Long commentId) {
-        return movieCommentToDTO(movieCommentRepository.findById(commentId).orElseThrow(ResourceNotFoundException::new));
-    }
-
-    public Page<MovieCommentDTO> getMovieCommentForMovie(Integer movieId, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by("sentAtTimestampSeconds").descending());
-        Page<MovieComment> dto = movieCommentRepository.findByMovie_MovieId(movieId, pageable);
-        return movieCommentMapper.toDTOPage(dto);
-    }
-
-    public Page<MovieCommentDTO> getMovieCommentFromUser(Long userId, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by("sentAtTimestampSeconds").descending());
-        return movieCommentMapper.toDTOPage(movieCommentRepository.findByFromUser_Id(userId, pageable));
-    }
-
-    public Page<MovieCommentDTO> getMovieCommentForMovieFromUser(Integer movieId, Long userId, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by("sentAtTimestampSeconds").descending());
-        return movieCommentMapper.toDTOPage(movieCommentRepository.findByFromUser_IdAndMovie_MovieId(userId, movieId, pageable));
-    }
-
-    public Page<MovieCommentDTO> getMovieCommentReported(Boolean isReported, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by("sentAtTimestampSeconds").descending());
-        return movieCommentMapper.toDTOPage( movieCommentRepository.findByIsReported(isReported, pageable));
-    }
-
-    @Override
-    public void createNotification(Long userId, NotificationType type, String content) {
-        User user = userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException("user_not_found"));
-        Notification notification = new Notification();
-
-        notification.setUser(user);
-        notification.setType(type);
-        notification.setContent(content);
-        notification.setTime( System.currentTimeMillis() );
-
-        Notification res = notificationRepository.save(notification);
-        notificationMapper.toDTO(res);
-    }
-
-    @Override
-    public NotificationDTO getNotification(Long userId, Long notificationId) {
-        Optional<Notification> notificationOpt = notificationRepository.findByIdAndUserId(notificationId, userId);
-        return notificationMapper.toDTO(notificationOpt.orElseThrow(() -> new ResourceNotFoundException("notification_not_found")));
-    }
-
-    @Override
-    public Page<NotificationDTO> getUserNotifications(Long userId, int pageNumber, int pageSize) {
-        Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.by(Sort.Direction.DESC, "time"));
-        Page<Notification> dto = notificationRepository.findByUserId(userId, pageable);
-        return notificationMapper.toDTOPage(dto);
-    }
-
-    @Override
-    public void userNotifiedBefore(Long userId, Long time) {
-        int page = 0;
-        int size = 500;
-        Pageable pageable = PageRequest.of(page, size);
-        Page<Notification> notificationsPage;
-
-        // Loop through the pages and apply the update
-        do {
-            notificationsPage = notificationRepository.findByUserIdAndTimeBefore(userId, time, pageable);
-
-            if (!notificationsPage.isEmpty()) {
-                notificationRepository.setLikedTrueBeforeTime(time, pageable.getPageSize());
-            }
-
-            page++;
-            pageable = PageRequest.of(page, size);
-
-        } while (notificationsPage.hasNext());
-    }
-
-    @Override
-    public void userNotified(Long userId, Long notificationId) {
-        Notification notification = notificationRepository.findByIdAndUserId(notificationId, userId).orElseThrow(()->
-            new ResourceNotFoundException("notification_not_found")
-        );
-        notification.setNotified(true);
-        notificationRepository.save(notification);
-    }
-
-    @Override
-    public void createUserActivity(Long userId, UserActivityType type, String content) {
-        User user = userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException("user_not_found"));
-
-        if ( content == null ) {
-            LOGGER.error("createUserActivity() called with null parameter 'content'!");
-            return;
-        }
-
-        UserActivity activity = new UserActivity();
-        activity.setUser(user);
-        activity.setType(type);
-        activity.setContent(content);
-        activity.setTime(System.currentTimeMillis());
-
-        userActivityRepository.save(activity);
-    }
-
     @Override
     public Page<UserActivityDTO> getUserActivities(Long userId, int pageNumber, int pageSize) {
-        Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.by(Sort.Direction.DESC, "time"));
-        Page<UserActivity> page = userActivityRepository.findByUserId(userId, pageable);
-        return userActivityMapperImpl.toDTOPage(page);
+        User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
+        return userActivityService.getUserActivities(user, pageNumber, pageSize);
+    }
+
+    @Override
+    public Page<NotificationDTO> getUserNotifications(Long userId, Integer pageNumber, Integer pageSize) {
+        User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
+        return notificationService.getUserNotifications(user, pageNumber, pageSize);
+    }
+
+    @Override
+    public void userNotifiedBefore(Long userId, Long timestamp) {
+        User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
+        notificationService.markAsRead(user, timestamp);
     }
 
 }

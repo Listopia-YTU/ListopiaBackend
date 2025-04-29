@@ -26,5 +26,5 @@ public class Notification {
     Boolean notified = false;
 
     @Column(nullable = false)
-    Long time;
+    Long time = System.currentTimeMillis();
 }
