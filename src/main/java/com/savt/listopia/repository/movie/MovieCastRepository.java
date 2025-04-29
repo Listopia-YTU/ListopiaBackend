@@ -10,9 +10,5 @@ import java.util.List;
 
 @Repository
 public interface MovieCastRepository extends JpaRepository<MovieCast, Integer> {
-    MovieCast getMovieCastById(Integer creditId);
-
     Page<MovieCast> findAllByMovieMovieId(Integer movieId, Pageable pageDetails);
-
-    List<MovieCast> findAllByMovieMovieId(Integer movieId);
 }

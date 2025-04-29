@@ -20,14 +20,17 @@ import java.util.List;
 
 @Service
 public class MovieCreditServiceImpl implements MovieCreditService {
-    @Autowired
-    private MovieCastRepository movieCastRepository;
+    private final MovieCastRepository movieCastRepository;
 
-    @Autowired
-    private MovieCrewRepository movieCrewRepository;
+    private final MovieCrewRepository movieCrewRepository;
 
-    @Autowired
-    private ModelMapper modelMapper;
+    private final ModelMapper modelMapper;
+
+    public MovieCreditServiceImpl(MovieCastRepository movieCastRepository, MovieCrewRepository movieCrewRepository, ModelMapper modelMapper) {
+        this.movieCastRepository = movieCastRepository;
+        this.movieCrewRepository = movieCrewRepository;
+        this.modelMapper = modelMapper;
+    }
 
     @Override
     public MovieCastResponse getMovieCasts(Integer movieId, Integer pageNumber, Integer pageSize, String sortBy, String sortOrder) {

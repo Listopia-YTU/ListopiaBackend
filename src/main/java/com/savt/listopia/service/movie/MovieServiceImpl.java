@@ -22,7 +22,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-
 @Service
 public class MovieServiceImpl implements MovieService {
     private final ModelMapper modelMapper;
