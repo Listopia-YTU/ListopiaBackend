@@ -1,4 +1,4 @@
-package com.savt.listopia.controller;
+package com.savt.listopia.controller.movie;
 
 import com.savt.listopia.config.AppConstants;
 import com.savt.listopia.payload.response.MovieCastResponse;
