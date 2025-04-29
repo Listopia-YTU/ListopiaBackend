@@ -40,8 +40,7 @@ public interface UserService {
     void userDeleteFromWatched(Long userId, Integer movieId);
 
     void makeFriends(Long receiverId, Long senderId);
-    void userSentRequestTo(Long requestOwnerUserId, UUID requestedUserUuid);
-    void userAcceptedFriend(Long accepterId, UUID requestId);
+    void userSentOrAcceptFriendRequest(Long requestOwnerUserId, UUID requestedUserUuid);
     void userCancelFriendRequest(Long userId, UUID cancelledUserUuid);
     void userRejectedFriend(Long userId, UUID friendUUID);
     void userRemovedFriend(Long userId, UUID friendUUID);
