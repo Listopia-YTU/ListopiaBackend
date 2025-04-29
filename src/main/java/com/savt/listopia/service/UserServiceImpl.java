@@ -437,7 +437,19 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public void userRejectedFriend(Long rejecterId, UUID rejectedUUID) {
-        deactivateFriendRequest(rejecterId, rejectedUUID);
+        User receiver = userRepository.findById(rejecterId).orElseThrow(UserNotFoundException::new);
+        User sender = userRepository.findByUuid(rejectedUUID).orElseThrow(UserNotFoundException::new);
+
+        Optional<UserFriendRequest> requestOptional = userFriendRequestsRepository.findByUserRequestSentAndUserRequestReceived(sender, receiver);
+        if (requestOptional.isEmpty() )
+            return;
+
+        UserFriendRequest request = requestOptional.get();
+        if ( !request.getActive() )
+            return;
+
+        request.setActive(false);
+        userFriendRequestsRepository.save(request);
     }
 
     @Override
