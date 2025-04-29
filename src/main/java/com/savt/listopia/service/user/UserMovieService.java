@@ -2,7 +2,7 @@ package com.savt.listopia.service.user;
 
 import com.savt.listopia.model.movie.Movie;
 import com.savt.listopia.payload.dto.MovieCommentDTO;
-import com.savt.listopia.payload.dto.MovieFrontDTO;
+import com.savt.listopia.payload.dto.movie.MovieFrontDTO;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 

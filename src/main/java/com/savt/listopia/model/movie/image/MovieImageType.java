@@ -1,6 +1,6 @@
-package com.savt.listopia.model.core.image;
+package com.savt.listopia.model.movie.image;
 
-public enum ImageType {
+public enum MovieImageType {
     BACKDROP(1),
     POSTER(2),
     LOGO(3),
@@ -8,7 +8,7 @@ public enum ImageType {
 
     private final int id;
 
-    ImageType(int id){
+    MovieImageType(int id){
         this.id = id;
     }
 

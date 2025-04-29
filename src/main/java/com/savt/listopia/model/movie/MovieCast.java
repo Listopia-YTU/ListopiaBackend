@@ -1,7 +1,5 @@
 package com.savt.listopia.model.movie;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.savt.listopia.model.people.Person;
 import jakarta.annotation.Nullable;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -27,11 +25,6 @@ public class MovieCast {
 
     @Column(columnDefinition = "TEXT", length = 512)
     private String character;
-
-    @Nullable
-    @ManyToOne
-    @JoinColumn(name = "person_id")
-    private Person person;
 
     @ManyToOne
     @JoinColumn(name = "movie_id")

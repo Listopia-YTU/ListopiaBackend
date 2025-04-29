@@ -1,6 +1,6 @@
-package com.savt.listopia.model.core.image;
+package com.savt.listopia.model.movie.image;
 
-import com.savt.listopia.model.people.Person;
+import com.savt.listopia.model.movie.Movie;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -10,11 +10,13 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "person_images")
-public class PersonImage {
+@Table(name = "movie_images")
+public class MovieImage {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long imageId;
+
+    private String iso6391;
 
     private String filePath;
 
@@ -27,6 +29,6 @@ public class PersonImage {
     private Integer type;
 
     @ManyToOne()
-    @JoinColumn(name = "person_id")
-    private Person person;
+    @JoinColumn(name = "movie_id")
+    private Movie movie;
 }

@@ -1,4 +1,4 @@
-package com.savt.listopia.payload.dto;
+package com.savt.listopia.payload.dto.movie;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -9,14 +9,10 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class MovieCrewDTO {
+public class MovieCastDTO {
     private String originalName;
 
     private String profilePath;
 
-    private String department;
-
-    private String job;
-
-    private String personId;
+    private String character;
 }

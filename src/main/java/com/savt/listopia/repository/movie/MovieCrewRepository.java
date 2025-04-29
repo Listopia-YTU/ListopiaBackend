@@ -1,6 +1,5 @@
-package com.savt.listopia.repository;
+package com.savt.listopia.repository.movie;
 
-import com.savt.listopia.model.movie.MovieCast;
 import com.savt.listopia.model.movie.MovieCrew;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

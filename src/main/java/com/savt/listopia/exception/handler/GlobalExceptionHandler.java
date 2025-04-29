@@ -6,12 +6,7 @@ import com.savt.listopia.exception.ResourceNotFoundException;
 import com.savt.listopia.exception.userException.UserException;
 import com.savt.listopia.exception.userException.UserNotAuthorizedException;
 import com.savt.listopia.exception.userException.UserNotFoundException;
-import com.savt.listopia.payload.APIResponse;
-
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-
+import com.savt.listopia.payload.response.APIResponse;
 import info.movito.themoviedbapi.tools.TmdbException;
 import jakarta.validation.ConstraintViolationException;
 import org.slf4j.Logger;
@@ -22,6 +17,10 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {

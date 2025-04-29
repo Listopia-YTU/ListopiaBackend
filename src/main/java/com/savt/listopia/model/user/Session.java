@@ -2,8 +2,9 @@ package com.savt.listopia.model.user;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
-import java.util.UUID;
 import lombok.Data;
+
+import java.util.UUID;
 
 @Data
 @Entity(name = "sessions")

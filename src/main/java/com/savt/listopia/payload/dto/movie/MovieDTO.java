@@ -1,11 +1,6 @@
-package com.savt.listopia.payload.dto;
+package com.savt.listopia.payload.dto.movie;
 
-import com.savt.listopia.model.core.Genre;
-import com.savt.listopia.model.movie.MovieCast;
-import com.savt.listopia.model.movie.MovieCrew;
-import com.savt.listopia.model.movie.MovieKeyword;
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.OneToMany;
+import com.savt.listopia.model.movie.Genre;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -44,19 +39,11 @@ public class MovieDTO {
     @ToString.Exclude
     private List<Genre> genres;
 
-    // Rating stats //
-
     private Integer watchCount;
 
     private Integer likeCount;
 
-    private Double ratingAverage;
-
-    private Integer ratingCount;
-
     private Long clickCount;
-
-    // External Ids //
 
     private String imdbId;
 

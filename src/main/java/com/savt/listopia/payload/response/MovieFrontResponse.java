@@ -1,6 +1,6 @@
 package com.savt.listopia.payload.response;
 
-import com.savt.listopia.payload.dto.MovieFrontDTO;
+import com.savt.listopia.payload.dto.movie.MovieFrontDTO;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

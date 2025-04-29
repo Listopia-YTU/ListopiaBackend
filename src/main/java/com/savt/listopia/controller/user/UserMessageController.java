@@ -2,8 +2,8 @@ package com.savt.listopia.controller.user;
 
 import com.savt.listopia.config.AppConstants;
 import com.savt.listopia.exception.userException.UserNotFoundException;
-import com.savt.listopia.payload.APIResponse;
 import com.savt.listopia.payload.dto.PrivateMessageDTO;
+import com.savt.listopia.payload.response.APIResponse;
 import com.savt.listopia.security.request.MessageUserRequest;
 import com.savt.listopia.service.UserService;
 import com.savt.listopia.service.user.UserMessageService;

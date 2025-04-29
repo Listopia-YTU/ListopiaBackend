@@ -2,9 +2,7 @@ package com.savt.listopia.model.movie;
 
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
-import com.savt.listopia.model.core.Genre;
-import com.savt.listopia.model.core.image.MovieImage;
-import com.savt.listopia.model.translation.MovieTranslation;
+import com.savt.listopia.model.movie.image.MovieImage;
 import jakarta.annotation.Nullable;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
@@ -23,8 +21,6 @@ import java.util.List;
 public class Movie {
     @Id
     private Integer movieId;
-
-    private Long clickCount = 0L;
 
     private String originalLanguage;
 
@@ -48,17 +44,11 @@ public class Movie {
 
     private Integer runtime;
 
-    //
-
     private Integer watchCount = 0;
 
     private Integer likeCount = 0;
 
-    private Double ratingAverage = 0.0;
-
-    private Integer ratingCount = 0;
-
-    //
+    private Long clickCount = 0L;
 
     @NotNull
     private String imdbId;
@@ -95,16 +85,9 @@ public class Movie {
     @OneToMany(mappedBy = "movie", cascade = {CascadeType.MERGE, CascadeType.PERSIST}, orphanRemoval = true)
     private List<MovieCrew> movieCrews = new ArrayList<>();
 
-    @JsonManagedReference
-    @OneToMany(mappedBy = "movie", cascade = {CascadeType.PERSIST, CascadeType.MERGE}, orphanRemoval = true)
-    private List<MovieKeyword> keywords;
-
     @ManyToMany
     @JoinTable(name = "movie_genres",
             joinColumns = @JoinColumn(name = "movie_id"),
             inverseJoinColumns = @JoinColumn(name = "genre_id"))
     private List<Genre> genres;
-
-    @OneToMany(mappedBy = "movie", cascade = {CascadeType.MERGE, CascadeType.PERSIST}, orphanRemoval = true)
-    private List<MovieTranslation> translations;
 }

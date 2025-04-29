@@ -1,8 +1,6 @@
 package com.savt.listopia.payload.response;
 
-import com.savt.listopia.model.movie.MovieCrew;
-import com.savt.listopia.payload.dto.MovieCastDTO;
-import com.savt.listopia.payload.dto.MovieCrewDTO;
+import com.savt.listopia.payload.dto.movie.MovieCrewDTO;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

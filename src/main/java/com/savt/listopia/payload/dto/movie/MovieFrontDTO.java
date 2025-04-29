@@ -1,7 +1,5 @@
-package com.savt.listopia.payload.dto;
+package com.savt.listopia.payload.dto.movie;
 
-import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.annotation.Nullable;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -19,8 +17,6 @@ public class MovieFrontDTO {
     private Integer watchCount;
 
     private Integer likeCount;
-
-    private Double ratingAverage;
 
     private Long clickCount;
 }

@@ -1,4 +1,4 @@
-package com.savt.listopia.model.core;
+package com.savt.listopia.model.movie;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -11,12 +11,10 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "languages")
-public class Language {
+@Table(name = "genres")
+public class Genre {
     @Id
-    private String isoCode;
-
-    private String englishName;
+    private Integer genreId;
 
     private String name;
 }
