@@ -24,7 +24,7 @@ public class WebSecurityConfig {
 
         http.csrf(csrf -> csrf.disable())
             .sessionManagement(
-                session -> session.sessionCreationPolicy(SessionCreationPolicy.ALWAYS))
+                session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .securityMatcher("/**")
             .authorizeHttpRequests(reg -> reg.requestMatchers("/**").permitAll());
 
