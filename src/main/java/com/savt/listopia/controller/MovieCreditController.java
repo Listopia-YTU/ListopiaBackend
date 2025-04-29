@@ -1,12 +1,10 @@
 package com.savt.listopia.controller;
 
 import com.savt.listopia.config.AppConstants;
-import com.savt.listopia.payload.dto.MovieDTO;
 import com.savt.listopia.payload.response.MovieCastResponse;
 import com.savt.listopia.payload.response.MovieCrewResponse;
-import com.savt.listopia.service.MovieCreditService;
+import com.savt.listopia.service.movie.MovieCreditService;
 import jakarta.validation.constraints.Max;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -16,9 +14,11 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/v1")
 @Validated
 public class MovieCreditController {
+    private final MovieCreditService movieCreditService;
 
-    @Autowired
-    private MovieCreditService movieCreditService;
+    public MovieCreditController(MovieCreditService movieCreditService) {
+        this.movieCreditService = movieCreditService;
+    }
 
     @GetMapping("/movies/{movieId}/casts")
     public ResponseEntity<MovieCastResponse> getMovieCast(@PathVariable Integer movieId,

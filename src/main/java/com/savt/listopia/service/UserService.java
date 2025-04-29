@@ -1,14 +1,14 @@
 package com.savt.listopia.service;
 
-import com.savt.listopia.model.user.*;
-import com.savt.listopia.payload.dto.*;
+import com.savt.listopia.model.user.User;
+import com.savt.listopia.payload.dto.NotificationDTO;
+import com.savt.listopia.payload.dto.UserActivityDTO;
+import com.savt.listopia.payload.dto.UserDTO;
+import org.springframework.data.domain.Page;
+import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 import java.util.UUID;
-
-import jakarta.validation.constraints.Max;
-import org.springframework.data.domain.Page;
-import org.springframework.stereotype.Service;
 
 @Service
 public interface UserService {

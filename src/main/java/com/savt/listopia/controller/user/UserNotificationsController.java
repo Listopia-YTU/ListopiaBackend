@@ -1,8 +1,8 @@
 package com.savt.listopia.controller.user;
 
 import com.savt.listopia.config.AppConstants;
-import com.savt.listopia.payload.APIResponse;
 import com.savt.listopia.payload.dto.NotificationDTO;
+import com.savt.listopia.payload.response.APIResponse;
 import com.savt.listopia.service.UserService;
 import jakarta.validation.constraints.Max;
 import org.springframework.data.domain.Page;

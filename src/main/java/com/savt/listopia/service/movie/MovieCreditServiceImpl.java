@@ -1,16 +1,19 @@
-package com.savt.listopia.service;
+package com.savt.listopia.service.movie;
 
 import com.savt.listopia.model.movie.MovieCast;
 import com.savt.listopia.model.movie.MovieCrew;
-import com.savt.listopia.payload.dto.MovieCastDTO;
-import com.savt.listopia.payload.dto.MovieCrewDTO;
+import com.savt.listopia.payload.dto.movie.MovieCastDTO;
+import com.savt.listopia.payload.dto.movie.MovieCrewDTO;
 import com.savt.listopia.payload.response.MovieCastResponse;
 import com.savt.listopia.payload.response.MovieCrewResponse;
-import com.savt.listopia.repository.MovieCastRepository;
-import com.savt.listopia.repository.MovieCrewRepository;
+import com.savt.listopia.repository.movie.MovieCastRepository;
+import com.savt.listopia.repository.movie.MovieCrewRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;

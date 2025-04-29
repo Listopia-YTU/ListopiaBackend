@@ -3,8 +3,6 @@ package com.savt.listopia.model.user;
 import com.savt.listopia.model.movie.Movie;
 import jakarta.persistence.*;
 import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
 
 @Data
 @Entity

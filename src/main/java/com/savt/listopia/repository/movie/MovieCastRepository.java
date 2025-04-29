@@ -1,4 +1,4 @@
-package com.savt.listopia.repository;
+package com.savt.listopia.repository.movie;
 
 import com.savt.listopia.model.movie.MovieCast;
 import org.springframework.data.domain.Page;

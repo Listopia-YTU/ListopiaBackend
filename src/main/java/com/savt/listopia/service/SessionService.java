@@ -4,13 +4,13 @@ import com.savt.listopia.model.user.Session;
 import com.savt.listopia.model.user.User;
 import com.savt.listopia.repository.SessionRepository;
 import com.savt.listopia.security.auth.AuthenticationToken;
-
-import java.time.Duration;
-import java.util.UUID;
 import org.springframework.http.ResponseCookie;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+
+import java.time.Duration;
+import java.util.UUID;
 
 @Service
 public class SessionService {

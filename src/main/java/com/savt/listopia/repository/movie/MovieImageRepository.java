@@ -1,6 +1,6 @@
-package com.savt.listopia.repository;
+package com.savt.listopia.repository.movie;
 
-import com.savt.listopia.model.core.image.MovieImage;
+import com.savt.listopia.model.movie.image.MovieImage;
 import org.springframework.data.domain.Limit;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;

@@ -6,24 +6,28 @@ import com.savt.listopia.exception.userException.UserException;
 import com.savt.listopia.exception.userException.UserNotAuthorizedException;
 import com.savt.listopia.exception.userException.UserNotFoundException;
 import com.savt.listopia.mapper.*;
-import com.savt.listopia.model.user.*;
-import com.savt.listopia.payload.dto.*;
+import com.savt.listopia.model.user.User;
+import com.savt.listopia.payload.dto.NotificationDTO;
+import com.savt.listopia.payload.dto.UserActivityDTO;
+import com.savt.listopia.payload.dto.UserDTO;
 import com.savt.listopia.repository.*;
+import com.savt.listopia.repository.movie.MovieCommentRepository;
+import com.savt.listopia.repository.movie.MovieImageRepository;
+import com.savt.listopia.repository.movie.MovieRepository;
 import com.savt.listopia.security.auth.AuthenticationToken;
 import com.savt.listopia.service.user.UserActivityService;
 import com.savt.listopia.util.PasswordUtil;
-
-import java.util.Optional;
-import java.util.UUID;
-
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.data.domain.*;
+import org.springframework.data.domain.Page;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+
+import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class UserServiceImpl implements UserService {

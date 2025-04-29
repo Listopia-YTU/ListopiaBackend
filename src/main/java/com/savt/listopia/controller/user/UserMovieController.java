@@ -2,8 +2,8 @@ package com.savt.listopia.controller.user;
 
 import com.savt.listopia.exception.APIException;
 import com.savt.listopia.model.movie.Movie;
-import com.savt.listopia.payload.APIResponse;
-import com.savt.listopia.repository.MovieRepository;
+import com.savt.listopia.payload.response.APIResponse;
+import com.savt.listopia.repository.movie.MovieRepository;
 import com.savt.listopia.service.UserService;
 import com.savt.listopia.service.user.UserMovieService;
 import org.springframework.http.ResponseEntity;

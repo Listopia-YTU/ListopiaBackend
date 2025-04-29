@@ -1,13 +1,12 @@
 package com.savt.listopia.model.user;
 
 import com.savt.listopia.model.movie.Movie;
+import jakarta.persistence.*;
+import lombok.Data;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import jakarta.persistence.*;
 import java.util.UUID;
-import lombok.Data;
 
 @Data
 @Entity

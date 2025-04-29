@@ -1,8 +1,8 @@
 package com.savt.listopia.mapper;
 
 import com.savt.listopia.model.movie.Movie;
-import com.savt.listopia.payload.dto.MovieFrontDTO;
-import com.savt.listopia.repository.MovieImageRepository;
+import com.savt.listopia.payload.dto.movie.MovieFrontDTO;
+import com.savt.listopia.repository.movie.MovieImageRepository;
 import org.mapstruct.AfterMapping;
 import org.mapstruct.Context;
 import org.mapstruct.Mapper;

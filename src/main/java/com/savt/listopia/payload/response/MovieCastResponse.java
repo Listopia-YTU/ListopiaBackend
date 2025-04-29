@@ -1,12 +1,11 @@
 package com.savt.listopia.payload.response;
 
-import com.savt.listopia.payload.dto.MovieCastDTO;
+import com.savt.listopia.payload.dto.movie.MovieCastDTO;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Getter

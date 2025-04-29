@@ -1,4 +1,4 @@
-package com.savt.listopia.service;
+package com.savt.listopia.service.movie;
 
 import com.savt.listopia.payload.response.MovieCastResponse;
 import com.savt.listopia.payload.response.MovieCrewResponse;

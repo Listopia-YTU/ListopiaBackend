@@ -1,8 +1,6 @@
 package com.savt.listopia.mapper;
 
 import com.savt.listopia.model.user.User;
-import com.savt.listopia.model.user.UserActivity;
-import com.savt.listopia.payload.dto.UserActivityDTO;
 import com.savt.listopia.payload.dto.UserDTO;
 import org.mapstruct.Mapper;
 import org.springframework.data.domain.Page;
