@@ -18,5 +18,5 @@ public interface UserFriendRequestsRepository extends JpaRepository<UserFriendRe
     Page<UserFriendRequest> findByUserRequestReceivedAndActive(User user, boolean b, Pageable pageable);
 
     @Query("SELECT u FROM UserFriendRequest u WHERE u.active = :b AND u.userRequestSent = :user")
-    Page<UserFriendRequest> findByUserRequestSentAndActive(User user, Boolean active, Pageable pageable);
+    Page<UserFriendRequest> findByUserRequestSentAndActive(User user, boolean b, Pageable pageable);
 }
