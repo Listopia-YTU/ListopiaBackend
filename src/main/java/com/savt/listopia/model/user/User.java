@@ -74,17 +74,6 @@ public class User {
     )
     List<User> friends = new ArrayList<>();
 
-    @ManyToMany
-    @JoinTable(
-            name = "user_friend_requests",
-            joinColumns = @JoinColumn(name = "user_id"), // arkadaş olmak istenilen kişi (isim yanıltıcı)
-            inverseJoinColumns = @JoinColumn(name = "requested_friend_id") // arkadaş olmak istetyen kişi (isim yanıltııc)
-    )
-    List<User> friendRequestsReceived = new ArrayList<>();
-
-    @ManyToMany(mappedBy = "friendRequestsReceived")
-    List<User> friendRequestsSent = new ArrayList<>();
-
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private List<Notification> notifications = new ArrayList<>();
 

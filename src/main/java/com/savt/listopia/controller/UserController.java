@@ -78,68 +78,50 @@ public class UserController {
 
     @PostMapping("/friend/add/{uuid}")
     public ResponseEntity<APIResponse> AddFriend(@Valid @PathVariable String uuid) {
-        return ResponseEntity.ok(APIResponse.failure("planli_calisma"));
-        /*
         Long userId = userService.getCurrentUserId().orElseThrow(UserNotAuthorizedException::new);
-        userService.UserFriendRequest(userId, UUID.fromString(uuid));
+        userService.userSentRequestTo(userId, UUID.fromString(uuid));
         return ResponseEntity.ok(APIResponse.builder().success(true).message("friend_request_sent").build());
-         */
     }
 
     @PostMapping("/friend/accept/{uuid}")
     public ResponseEntity<APIResponse> AcceptFriend(@Valid @PathVariable String uuid) {
-        return ResponseEntity.ok(APIResponse.failure("planli_calisma"));
-        /*
         Long userId = userService.getCurrentUserId().orElseThrow(UserNotFoundException::new);
-        userService.AcceptFriend(userId, UUID.fromString(uuid));
+        userService.userAcceptedFriend(userId, UUID.fromString(uuid));
         return ResponseEntity.ok(APIResponse.builder().success(true).message("friend_added").build());
-         */
     }
 
     @PostMapping("/friend/reject/{uuid}")
     public ResponseEntity<APIResponse> rejectFriend(@Valid @PathVariable String uuid) {
-        return ResponseEntity.ok(APIResponse.failure("planli_calisma"));
-        /*
         Long userId = userService.getCurrentUserId().orElseThrow(UserNotFoundException::new);
-        userService.rejectFriend(userId, UUID.fromString(uuid));
+        userService.userRejectedFriend(userId, UUID.fromString(uuid));
         return ResponseEntity.ok(APIResponse.builder().success(true).message("friend_rejected").build());
-         */
     }
 
     @DeleteMapping("/friend/remove/{uuid}")
     public ResponseEntity<APIResponse> removeFriend(@Valid @PathVariable String uuid) {
-        return ResponseEntity.ok(APIResponse.failure("planli_calisma"));
-        /*
         Long userId = userService.getCurrentUserId().orElseThrow(UserNotFoundException::new);
-        userService.removeFriend(userId, UUID.fromString(uuid));
+        userService.userRemovedFriend(userId, UUID.fromString(uuid));
         return ResponseEntity.ok(APIResponse.builder().success(true).message("friend_rejected").build());
-         */
     }
 
     @GetMapping("/friend/requests/received")
-    public ResponseEntity<Page<UserDTO>> userFriendRequestsReceived(
+    public ResponseEntity<Page<UserFriendRequestDTO>> userFriendRequestsReceived(
             @RequestParam(name = "pageNumber", defaultValue = AppConstants.PAGE_NUMBER, required = false) Integer pageNumber,
             @Max(50) @RequestParam(name = "pageSize", defaultValue = AppConstants.PAGE_SIZE, required = false) Integer pageSize
     ) {
-        throw new APIException("planli_calisma");
-        /*
         Long userId = userService.getCurrentUserId().orElseThrow(UserNotFoundException::new);
-        Page<UserDTO> requests = userService.getUserFriendRequestsReceived(userId, pageNumber, pageSize);
+        Page<UserFriendRequestDTO> requests = userService.getUserFriendRequestsReceived(userId, pageNumber, pageSize);
         return ResponseEntity.ok(requests);
-         */
     }
 
     @GetMapping("/friend/requests/sent")
-    public ResponseEntity<Page<UserDTO>> userFriendRequestsSent(
+    public ResponseEntity<Page<UserFriendRequestDTO>> userFriendRequestsSent(
             @RequestParam(name = "pageNumber", defaultValue = AppConstants.PAGE_NUMBER, required = false) Integer pageNumber,
             @Max(50) @RequestParam(name = "pageSize", defaultValue = AppConstants.PAGE_SIZE, required = false) Integer pageSize
     ) {
-        throw new APIException("planli_calisma");
-        /*
         Long userId = userService.getCurrentUserId().orElseThrow(UserNotFoundException::new);
-        Page<UserDTO> requests = userService.getUserFriendRequestsSent(userId, pageNumber, pageSize);
+        Page<UserFriendRequestDTO> requests = userService.getUserFriendRequestsSent(userId, pageNumber, pageSize);
         return ResponseEntity.ok(requests);
-         */
     }
 
     @GetMapping("/uuid/{uuid}/friends")
@@ -148,13 +130,10 @@ public class UserController {
             @RequestParam(name = "pageNumber", defaultValue = AppConstants.PAGE_NUMBER, required = false) Integer pageNumber,
             @Max(50) @RequestParam(name = "pageSize", defaultValue = AppConstants.PAGE_SIZE, required = false) Integer pageSize
     ) {
-        throw new APIException("planli_calisma");
-        /*
         return ResponseEntity.ok(
-                userService.UserFriends(userService.getUserIdFromUUID(UUID.fromString(uuid)),
+                userService.getUserFriends(userService.getUserIdFromUUID(UUID.fromString(uuid)),
                 pageNumber, pageSize)
         );
-         */
     }
 
     @GetMapping("/uuid/{uuid}/liked_movies")
@@ -163,12 +142,9 @@ public class UserController {
             @RequestParam(name = "pageNumber", defaultValue = AppConstants.PAGE_NUMBER, required = false) Integer pageNumber,
             @Max(50) @RequestParam(name = "pageSize", defaultValue = AppConstants.PAGE_SIZE, required = false) Integer pageSize
     ) {
-        throw new APIException("planli_calisma");
-        /*
         Long userId = userService.getUserIdFromUUID(uuid);
         Page<MovieFrontDTO> likedMovies = userService.getUserLikedMovies(userId, pageNumber, pageSize);
         return ResponseEntity.ok(likedMovies);
-         */
     }
 
     //////
