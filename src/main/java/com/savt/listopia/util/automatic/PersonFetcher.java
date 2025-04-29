@@ -1,4 +1,4 @@
-package com.savt.listopia.util;
+package com.savt.listopia.util.automatic;
 
 import com.savt.listopia.model.core.image.ImageType;
 import com.savt.listopia.model.core.image.PersonImage;

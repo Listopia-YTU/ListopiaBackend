@@ -1,4 +1,4 @@
-package com.savt.listopia.util;
+package com.savt.listopia.util.automatic;
 
 import com.savt.listopia.model.movie.Movie;
 import com.savt.listopia.model.translation.GenreTranslation;
@@ -11,7 +11,6 @@ import info.movito.themoviedbapi.model.movies.MovieDb;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import java.util.List;
