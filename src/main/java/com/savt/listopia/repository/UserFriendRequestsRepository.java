@@ -14,8 +14,9 @@ import java.util.Optional;
 public interface UserFriendRequestsRepository extends JpaRepository<UserFriendRequest, Long> {
     Optional<UserFriendRequest> findByUserRequestSentAndUserRequestReceived(User id, User id1);
 
-    @Query("SELECT u FROM UserFriendRequest u WHERE u.active = :b AND u.userRequestSent = :user")
+    @Query("SELECT u FROM UserFriendRequest u WHERE u.active = :b AND u.userRequestReceived = :user")
     Page<UserFriendRequest> findByUserRequestReceivedAndActive(User user, boolean b, Pageable pageable);
 
+    @Query("SELECT u FROM UserFriendRequest u WHERE u.active = :b AND u.userRequestSent = :user")
     Page<UserFriendRequest> findByUserRequestSentAndActive(User userRequestSent, Boolean active, Pageable pageable);
 }
