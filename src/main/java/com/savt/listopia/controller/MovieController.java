@@ -10,6 +10,7 @@ import com.savt.listopia.payload.response.MovieFrontResponse;
 import com.savt.listopia.service.AuthServiceImpl;
 import com.savt.listopia.service.MovieService;
 import com.savt.listopia.service.UserService;
+import com.savt.listopia.service.user.UserMovieService;
 import jakarta.validation.constraints.Max;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -26,11 +27,13 @@ public class MovieController {
     private final MovieService movieService;
     private final UserService userService;
     private final AuthServiceImpl authServiceImpl;
+    private final UserMovieService userMovieService;
 
-    public MovieController(MovieService movieService, UserService userService, AuthServiceImpl authServiceImpl) {
+    public MovieController(MovieService movieService, UserService userService, AuthServiceImpl authServiceImpl, UserMovieService userMovieService) {
         this.movieService = movieService;
         this.userService = userService;
         this.authServiceImpl = authServiceImpl;
+        this.userMovieService = userMovieService;
     }
 
     @GetMapping("/movies/{movieId}")
@@ -102,7 +105,7 @@ public class MovieController {
             @RequestParam(name = "isSpoiler", required = false) Boolean isSpoiler
     ) {
         Long userId = userService.getCurrentUserIdOrThrow();
-        MovieCommentDTO dto = userService.createMovieComment(userId, movieId, isSpoiler, message);
+        MovieCommentDTO dto = userMovieService.createMovieComment(userId, movieId, isSpoiler, message);
         return ResponseEntity.ok(dto);
     }
 
@@ -115,10 +118,10 @@ public class MovieController {
     ) {
         Page<MovieCommentDTO> dto;
         if ( fromUser.isEmpty() ) {
-            dto = userService.getMovieCommentForMovie(movieId,pageNumber,pageSize);
+            dto = userMovieService.getMovieCommentForMovie(movieId,pageNumber,pageSize);
         } else {
             Long userId = userService.getUserIdFromUUID(UUID.fromString(fromUser));
-            dto = userService.getMovieCommentForMovieFromUser(movieId, userId, pageNumber, pageSize);
+            dto = userMovieService.getMovieCommentForMovieFromUser(movieId, userId, pageNumber, pageSize);
         }
         return ResponseEntity.ok(dto);
     }
@@ -127,7 +130,7 @@ public class MovieController {
     public ResponseEntity<APIResponse> reportMessage(
             @PathVariable Long commentId
     ) {
-        userService.reportMovieComment(commentId);
+        userMovieService.reportMovieComment(commentId);
         return ResponseEntity.ok(APIResponse.builder().success(true).message("movie_comment_reported").build());
     }
 
@@ -138,7 +141,7 @@ public class MovieController {
             @RequestParam(name = "isSpoiler", required = false) Boolean isSpoiler
     ) {
         Long userId = userService.getCurrentUserIdOrThrow();
-        MovieCommentDTO dto = userService.updateMovieComment(userId, commentId, isSpoiler, message);
+        MovieCommentDTO dto = userMovieService.updateMovieComment(userId, commentId, isSpoiler, message);
         return ResponseEntity.ok(dto);
     }
 
@@ -147,7 +150,7 @@ public class MovieController {
             @PathVariable Long commentId
     ) {
         Long userId = userService.getCurrentUserIdOrThrow();
-        userService.deleteMovieComment(userId, commentId);
+        userMovieService.deleteMovieComment(userId, commentId);
         return ResponseEntity.ok(APIResponse.builder().success(true).message("movie_comment_deleted").build());
     }
 
@@ -155,7 +158,7 @@ public class MovieController {
     public ResponseEntity<MovieCommentDTO> getMovieComment(
             @PathVariable Long commentId
     ) {
-        MovieCommentDTO dto = userService.getMovieCommentById(commentId);
+        MovieCommentDTO dto = userMovieService.getMovieCommentById(commentId);
         return ResponseEntity.ok(dto);
     }
 
