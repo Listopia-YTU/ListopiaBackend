@@ -398,7 +398,7 @@ public class UserServiceImpl implements UserService {
         userFriendRequest.setActive(true);
         userFriendRequest.setTimestamp(System.currentTimeMillis());
         userFriendRequest.setUserRequestSent(requester);
-        userFriendRequest.setUserRequestReceived(requester);
+        userFriendRequest.setUserRequestReceived(requested);
 
         userFriendRequestsRepository.save(userFriendRequest);
     }
