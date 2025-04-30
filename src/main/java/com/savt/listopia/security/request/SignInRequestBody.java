@@ -1,12 +1,12 @@
-package com.savt.listopia.payload.request;
+package com.savt.listopia.security.request;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 @Data
-public class SignInRequest {
+public class SignInRequestBody {
     @NotBlank
-    private String username;
+    private String email;
 
     @NotBlank
     private String password;
