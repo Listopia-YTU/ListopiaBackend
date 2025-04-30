@@ -32,4 +32,9 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @Query("SELECT m FROM User u JOIN u.watchedList m WHERE u.id = :userId")
     Page<Movie> findWatchedListByUserId(@Param("userId") Long userId, Pageable page);
 
+    @Query("SELECT u FROM User u JOIN u.likedMovies lm GROUP BY u ORDER BY COUNT(lm) DESC")
+    Page<User> findUsersByLikedMoviesCount(Pageable pageDetails);
+
+    @Query("SELECT u FROM User u JOIN u.watchedList wl GROUP BY u ORDER BY COUNT(wl) DESC")
+    Page<User> findUsersByWatchedMoviesCount(Pageable pageDetails);
 }
