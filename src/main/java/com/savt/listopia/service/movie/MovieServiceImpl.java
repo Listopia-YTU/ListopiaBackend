@@ -94,10 +94,10 @@ public class MovieServiceImpl implements MovieService {
                 .orElseThrow(() -> new ResourceNotFoundException("Movie", "movieId", movieId));
 
         movie.setClickCount(movie.getClickCount() + 1);
-        for (Genre genre: movie.getGenres()){
-            genre.setClickCount(genre.getClickCount() + 1);
-            genreRepository.save(genre);
-        }
+//        for (Genre genre: movie.getGenres()){
+//            genre.setClickCount(genre.getClickCount() + 1);
+//            genreRepository.save(genre);
+//        }
         movieRepository.save(movie);
 
         MovieDTO movieDTO = modelMapper.map(movie, MovieDTO.class);
