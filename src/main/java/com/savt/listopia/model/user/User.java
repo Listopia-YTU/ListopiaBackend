@@ -78,4 +78,12 @@ public class User {
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private List<UserActivity> activities = new ArrayList<>();
+
+    public int getLikedCount(){
+        return likedMovies.size();
+    }
+
+    public int getWatchedCount(){
+        return watchedList.size();
+    }
 }
