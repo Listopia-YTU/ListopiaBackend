@@ -113,15 +113,15 @@ public class MovieServiceImpl implements MovieService {
                 .orElseThrow(() -> new ResourceNotFoundException("Movie", "movieId", movieId));
 
         Movie movie = modelMapper.map(movieDTO, Movie.class);
-        movie.setMovieId(movieId);
         movie.setGenres(movieFromDb.getGenres());
         movie.setPosters(movieFromDb.getPosters());
         movie.setBackdrops(movieFromDb.getBackdrops());
         movie.setLogos(movieFromDb.getLogos());
+        movie.setMovieCasts(movieFromDb.getMovieCasts());
+        movie.setMovieCrews(movieFromDb.getMovieCrews());
         movie.setPopularity(movieFromDb.getPopularity());
         movie.setWatchCount(movieFromDb.getWatchCount());
         movie.setLikeCount(movieFromDb.getLikeCount());
-
         return modelMapper.map(movieRepository.save(movie), MovieDTO.class);
     }
 
