@@ -2,15 +2,17 @@ package com.savt.listopia.controller;
 
 import com.savt.listopia.model.user.Session;
 import com.savt.listopia.payload.response.APIResponse;
-import com.savt.listopia.payload.request.SignInRequest;
+import com.savt.listopia.security.request.SignInRequestBody;
 import com.savt.listopia.payload.request.SignUpRequest;
 import com.savt.listopia.service.AuthService;
 import com.savt.listopia.service.SessionService;
+import com.savt.listopia.service.UserService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
@@ -37,7 +39,7 @@ public class AuthController {
     }
 
     @PostMapping("/signin")
-    public ResponseEntity<APIResponse> signIn(@Valid @RequestBody SignInRequest signInRequest, HttpServletResponse response) {
+    public ResponseEntity<APIResponse> signIn(@Valid @RequestBody SignInRequestBody signInRequest, HttpServletResponse response) {
         ResponseCookie sessionCookie = authService.handleSignIn(signInRequest.getEmail(), signInRequest.getPassword());
         response.setHeader(HttpHeaders.SET_COOKIE, sessionCookie.toString());
         return ResponseEntity.ok(APIResponse.builder().success(true).message("logged_in").build());
