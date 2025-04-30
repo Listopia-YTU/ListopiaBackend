@@ -10,13 +10,11 @@ import com.savt.listopia.repository.UserRepository;
 import com.savt.listopia.repository.movie.GenreRepository;
 import com.savt.listopia.repository.movie.MovieRepository;
 import org.modelmapper.ModelMapper;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -35,6 +33,11 @@ public class StatServiceImpl implements StatService{
 
     @Override
     public StatisticDTO getStatistics() {
+        modelMapper.typeMap(User.class, UserStatDTO.class).addMappings(mapper -> {
+            mapper.map(User::getLikedCount, UserStatDTO::setLikedCount);
+            mapper.map(User::getWatchedCount, UserStatDTO::setWatchedCount);
+        });
+
         Sort sortBy = Sort.by("watchCount").descending();
         Pageable pageDetails = PageRequest.of(0, 10, sortBy);
         List<Movie> mostWatchedMovies = movieRepository.findAll(pageDetails).getContent();
