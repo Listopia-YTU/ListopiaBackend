@@ -86,8 +86,10 @@ public class UserMovieServiceImpl implements UserMovieService {
             userRepository.save(user);
             movie.setLikeCount(movie.getLikeCount() - 1);
             for (Genre genre: movie.getGenres()){
-                genre.setLikeCount(genre.getLikeCount() - 1);
-                genreRepository.save(genre);
+                if (genre.getLikeCount() != 0){
+                    genre.setLikeCount(genre.getLikeCount() - 1);
+                    genreRepository.save(genre);
+                }
             }
             movieRepository.save(movie);
         }
@@ -100,6 +102,13 @@ public class UserMovieServiceImpl implements UserMovieService {
 
         if (user.getLikedMovies().contains(movie))
             return;
+
+        movie.setLikeCount(movie.getLikeCount() + 1);
+        for (Genre genre: movie.getGenres()){
+            genre.setLikeCount(genre.getLikeCount() + 1);
+            genreRepository.save(genre);
+        }
+        movieRepository.save(movie);
 
         user.getLikedMovies().add(movie);
         userRepository.save(user);
@@ -114,6 +123,15 @@ public class UserMovieServiceImpl implements UserMovieService {
 
         if (!user.getLikedMovies().contains(movie))
             return;
+
+        movie.setLikeCount(movie.getLikeCount() - 1);
+        for (Genre genre: movie.getGenres()){
+            if (genre.getLikeCount() != 0){
+                genre.setLikeCount(genre.getLikeCount() - 1);
+                genreRepository.save(genre);
+            }
+        }
+        movieRepository.save(movie);
 
         user.getLikedMovies().remove(movie);
         userRepository.save(user);
@@ -192,8 +210,10 @@ public class UserMovieServiceImpl implements UserMovieService {
         if (movie.getWatchCount() != 0){
             movie.setWatchCount(movie.getWatchCount() - 1);
             for (Genre genre: movie.getGenres()){
-                genre.setWatchCount(genre.getWatchCount() - 1);
-                genreRepository.save(genre);
+                if (genre.getWatchCount() != 0){
+                    genre.setWatchCount(genre.getWatchCount() - 1);
+                    genreRepository.save(genre);
+                }
             }
             movieRepository.save(movie);
         }
