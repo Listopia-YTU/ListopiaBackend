@@ -12,10 +12,8 @@ import java.util.UUID;
 
 @Service
 public interface UserService {
+    User createUser(String firstname, String lastName, String email, String username, String hashedPassword);
     UserDTO getUserByUsername(String username);
-    User registerUser(String firstname, String lastName, String email, String username, String plainPassword);
-    User getUserByEmailPassword(String email, String plainPassword);
-    boolean verifyUserPassword(User user, String enteredPassword);
     UserDTO getUserById(Long id);
     Optional<Long> getCurrentUserId();
     Long getCurrentUserIdOrThrow();

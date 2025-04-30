@@ -22,6 +22,9 @@ public class User {
     @Column(unique = true)
     String username;
 
+    @Column(unique = true)
+    String usernameLower;
+
     @Column(columnDefinition = "TEXT")
     String biography = "";
 
