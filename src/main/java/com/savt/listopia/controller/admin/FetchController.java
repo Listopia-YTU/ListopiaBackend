@@ -1,4 +1,4 @@
-package com.savt.listopia.controller;
+package com.savt.listopia.controller.admin;
 
 import com.savt.listopia.model.user.UserRole;
 import com.savt.listopia.service.AuthService;

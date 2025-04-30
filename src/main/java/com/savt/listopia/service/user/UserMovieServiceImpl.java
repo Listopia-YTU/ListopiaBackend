@@ -6,12 +6,14 @@ import com.savt.listopia.exception.userException.UserNotAuthorizedException;
 import com.savt.listopia.exception.userException.UserNotFoundException;
 import com.savt.listopia.mapper.MovieCommentMapper;
 import com.savt.listopia.mapper.MovieFrontMapper;
+import com.savt.listopia.model.movie.Genre;
 import com.savt.listopia.model.movie.Movie;
 import com.savt.listopia.model.user.MovieComment;
 import com.savt.listopia.model.user.User;
 import com.savt.listopia.payload.dto.MovieCommentDTO;
 import com.savt.listopia.payload.dto.movie.MovieFrontDTO;
 import com.savt.listopia.repository.UserRepository;
+import com.savt.listopia.repository.movie.GenreRepository;
 import com.savt.listopia.repository.movie.MovieCommentRepository;
 import com.savt.listopia.repository.movie.MovieImageRepository;
 import com.savt.listopia.repository.movie.MovieRepository;
@@ -38,8 +40,9 @@ public class UserMovieServiceImpl implements UserMovieService {
     private final MovieCommentMapper movieCommentMapper;
     private final MovieFrontMapper movieFrontMapper;
     private final MovieImageRepository movieImageRepository;
+    private final GenreRepository genreRepository;
 
-    public UserMovieServiceImpl(UserRepository userRepository, MovieRepository movieRepository, MovieCommentRepository movieCommentRepository, UserActivityService userActivityService, MovieCommentMapper movieCommentMapper, MovieFrontMapper movieFrontMapper, MovieImageRepository movieImageRepository) {
+    public UserMovieServiceImpl(UserRepository userRepository, MovieRepository movieRepository, MovieCommentRepository movieCommentRepository, UserActivityService userActivityService, MovieCommentMapper movieCommentMapper, MovieFrontMapper movieFrontMapper, MovieImageRepository movieImageRepository, GenreRepository genreRepository) {
         this.userRepository = userRepository;
         this.movieRepository = movieRepository;
         this.movieCommentRepository = movieCommentRepository;
@@ -47,6 +50,7 @@ public class UserMovieServiceImpl implements UserMovieService {
         this.movieCommentMapper = movieCommentMapper;
         this.movieFrontMapper = movieFrontMapper;
         this.movieImageRepository = movieImageRepository;
+        this.genreRepository = genreRepository;
     }
 
     @Transactional
@@ -69,6 +73,10 @@ public class UserMovieServiceImpl implements UserMovieService {
                 user.getLikedMovies().add(movie);
                 userRepository.save(user);
                 movie.setLikeCount(movie.getLikeCount() + 1);
+                for (Genre genre: movie.getGenres()){
+                    genre.setLikeCount(genre.getLikeCount() + 1);
+                    genreRepository.save(genre);
+                }
                 movieRepository.save(movie);
 
                 userActivityService.activityMovieLike(user, movie);
@@ -77,6 +85,10 @@ public class UserMovieServiceImpl implements UserMovieService {
             user.getLikedMovies().remove(movie);
             userRepository.save(user);
             movie.setLikeCount(movie.getLikeCount() - 1);
+            for (Genre genre: movie.getGenres()){
+                genre.setLikeCount(genre.getLikeCount() - 1);
+                genreRepository.save(genre);
+            }
             movieRepository.save(movie);
         }
     }
@@ -158,6 +170,10 @@ public class UserMovieServiceImpl implements UserMovieService {
             return;
 
         movie.setWatchCount(movie.getWatchCount() + 1);
+        for (Genre genre: movie.getGenres()){
+            genre.setWatchCount(genre.getWatchCount() + 1);
+            genreRepository.save(genre);
+        }
         movieRepository.save(movie);
 
         user.getWatchedList().add(movie);
@@ -175,6 +191,10 @@ public class UserMovieServiceImpl implements UserMovieService {
 
         if (movie.getWatchCount() != 0){
             movie.setWatchCount(movie.getWatchCount() - 1);
+            for (Genre genre: movie.getGenres()){
+                genre.setWatchCount(genre.getWatchCount() - 1);
+                genreRepository.save(genre);
+            }
             movieRepository.save(movie);
         }
 

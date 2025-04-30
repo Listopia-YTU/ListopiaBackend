@@ -17,4 +17,8 @@ public class Genre {
     private Integer genreId;
 
     private String name;
+
+    private Long clickCount = 0L;
+    private Long watchCount = 0L;
+    private Long likeCount = 0L;
 }
