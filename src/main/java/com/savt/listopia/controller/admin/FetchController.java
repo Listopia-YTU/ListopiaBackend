@@ -26,7 +26,7 @@ public class FetchController {
 
     @PostMapping("/genres")
     public ResponseEntity<String> fetchGenres() throws TmdbException {
-        authService.requireRoleOrThrow(UserRole.ADMIN);
+        //authService.requireRoleOrThrow(UserRole.ADMIN);
         fetchUtil.fetchGenres();
         return new ResponseEntity<>("Fetched genres", HttpStatus.CREATED);
     }
