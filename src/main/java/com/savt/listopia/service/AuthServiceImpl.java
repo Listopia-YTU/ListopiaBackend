@@ -154,12 +154,12 @@ public class AuthServiceImpl implements AuthService {
 
         Optional<User> optionalUser = userRepository.findByUsername(username);
         if ( optionalUser.isEmpty() ) {
-            throw new APIException("username_or_passwor");
+            throw new APIException("username_or_password_wrong");
         }
 
         User user = optionalUser.get();
         if ( !PasswordUtil.verifyPassword(password, user.getHashedPassword()) ) {
-            throw new APIException("username_or_p");
+            throw new APIException("username_or_password_wrong");
         }
 
         Session session = sessionService.createSession(user);
