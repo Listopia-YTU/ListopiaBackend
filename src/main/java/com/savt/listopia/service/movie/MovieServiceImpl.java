@@ -2,10 +2,12 @@ package com.savt.listopia.service.movie;
 
 import com.savt.listopia.exception.APIException;
 import com.savt.listopia.exception.ResourceNotFoundException;
+import com.savt.listopia.model.movie.Genre;
 import com.savt.listopia.model.movie.Movie;
 import com.savt.listopia.payload.dto.movie.MovieDTO;
 import com.savt.listopia.payload.dto.movie.MovieFrontDTO;
 import com.savt.listopia.payload.response.MovieFrontResponse;
+import com.savt.listopia.repository.movie.GenreRepository;
 import com.savt.listopia.repository.movie.MovieImageRepository;
 import com.savt.listopia.repository.movie.MovieRepository;
 import info.movito.themoviedbapi.TmdbApi;
@@ -29,14 +31,16 @@ public class MovieServiceImpl implements MovieService {
     private final MovieRepository movieRepository;
 
     private final MovieImageRepository movieImageRepository;
+    private final GenreRepository genreRepository;
 
     @Value("${tmdb.apiKey}")
     private String tmdbKey;
 
-    public MovieServiceImpl(ModelMapper modelMapper, MovieRepository movieRepository, MovieImageRepository movieImageRepository) {
+    public MovieServiceImpl(ModelMapper modelMapper, MovieRepository movieRepository, MovieImageRepository movieImageRepository, GenreRepository genreRepository) {
         this.modelMapper = modelMapper;
         this.movieRepository = movieRepository;
         this.movieImageRepository = movieImageRepository;
+        this.genreRepository = genreRepository;
     }
 
     @Override
@@ -90,6 +94,10 @@ public class MovieServiceImpl implements MovieService {
                 .orElseThrow(() -> new ResourceNotFoundException("Movie", "movieId", movieId));
 
         movie.setClickCount(movie.getClickCount() + 1);
+        for (Genre genre: movie.getGenres()){
+            genre.setClickCount(genre.getClickCount() + 1);
+            genreRepository.save(genre);
+        }
         movieRepository.save(movie);
 
         MovieDTO movieDTO = modelMapper.map(movie, MovieDTO.class);
