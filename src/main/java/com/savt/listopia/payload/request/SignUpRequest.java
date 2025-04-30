@@ -1,17 +1,18 @@
-package com.savt.listopia.security.request;
+package com.savt.listopia.payload.request;
 
+import com.savt.listopia.util.validator.ValidPassword;
 import com.savt.listopia.util.validator.ValidUsername;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 @Data
-public class SignUpRequestBody {
+public class SignUpRequest {
     @NotBlank
     @Email
     private String email;
 
-    @NotBlank
+    @ValidPassword
     private String password;
 
     @NotBlank

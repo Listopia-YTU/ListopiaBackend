@@ -16,9 +16,11 @@ import java.util.UUID;
 public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByEmail(String email);
     Optional<User> findByUsername(String username);
+    Optional<User> findByUsernameLower(String usernameLower);
     Optional<User> findByUuid(UUID uuid);
     boolean existsByUsername(String username);
     boolean existsByEmail(String email);
+    boolean existsByUsernameLower(String usernameLower);
 
     @Query("SELECT m FROM User u JOIN u.likedMovies m WHERE u.id = :userId")
     Page<Movie> findLikedMoviesByUserId(@Param("userId") Long userId, Pageable page);

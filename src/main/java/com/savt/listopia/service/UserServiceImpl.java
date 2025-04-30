@@ -1,6 +1,5 @@
 package com.savt.listopia.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.savt.listopia.exception.APIException;
 import com.savt.listopia.exception.userException.UserException;
 import com.savt.listopia.exception.userException.UserNotAuthorizedException;
@@ -11,12 +10,10 @@ import com.savt.listopia.payload.dto.NotificationDTO;
 import com.savt.listopia.payload.dto.UserActivityDTO;
 import com.savt.listopia.payload.dto.UserDTO;
 import com.savt.listopia.repository.*;
-import com.savt.listopia.repository.movie.MovieCommentRepository;
-import com.savt.listopia.repository.movie.MovieImageRepository;
-import com.savt.listopia.repository.movie.MovieRepository;
 import com.savt.listopia.security.auth.AuthenticationToken;
 import com.savt.listopia.service.user.UserActivityService;
 import com.savt.listopia.util.PasswordUtil;
+import com.savt.listopia.util.UserUtil;
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,57 +46,36 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDTO getUserByUsername(String username) {
-        User user = userRepository.findByUsername(username).orElseThrow(UserNotFoundException::new);
+        // User user = userRepository.findByUsername(username).orElseThrow(UserNotFoundException::new);
+        User user = userRepository.findByUsernameLower(UserUtil.usernameToLowerCase(username)).orElseThrow(UserNotFoundException::new);
         return userMapper.toDTO(user);
     }
 
-    public User registerUser(String firstname, String lastName, String email, String username, String plainPassword) {
-        if (userRepository.existsByUsername(username))
+    @Override
+    public User createUser(String firstname, String lastName, String email, String username, String hashedPassword) {
+        if (userRepository.existsByUsernameLower(username))
             throw new APIException("username_already_exists");
 
         if (userRepository.existsByEmail(email))
             throw new APIException("email_already_exists");
 
-        String hashedPassword = PasswordUtil.hashPassword(plainPassword);
         User user = new User();
         user.setEmail(email);
         user.setFirstName(firstname);
         user.setLastName(lastName);
         user.setUsername(username);
+        user.setUsernameLower(UserUtil.usernameToLowerCase(username));
         user.setHashedPassword(hashedPassword);
         user.setCreatedAt( System.currentTimeMillis() );
         user.setLastOnline( System.currentTimeMillis() );
         user.setProfilePicture("https://i.pinimg.com/736x/c0/74/9b/c0749b7cc401421662ae901ec8f9f660.jpg");
 
         try {
-            userRepository.save(user);
+            return userRepository.save(user);
         } catch (DataIntegrityViolationException e) {
+            LOGGER.error("Error creating user", e);
             throw new APIException("username_or_email_already_exists");
         }
-
-        return user;
-    }
-
-    public User getUserByEmailPassword(String email, String plainPassword) {
-        Optional<User> userOpt = userRepository.findByEmail(email);
-
-        if (userOpt.isEmpty()) {
-            throw new UserNotFoundException("mail_not_found");
-        }
-
-        User user = userOpt.get();
-
-        if (verifyUserPassword(user, plainPassword))
-            return user;
-
-        throw new UserNotAuthorizedException("password_not_correct");
-    }
-
-    public boolean verifyUserPassword(User user, String enteredPassword) {
-        if (user == null)
-            return false;
-
-        return PasswordUtil.verifyPassword(enteredPassword, user.getHashedPassword());
     }
 
     public UserDTO getUserById(Long id) {
@@ -125,11 +101,12 @@ public class UserServiceImpl implements UserService {
     }
 
     public void ChangeUsername(Long userId, String username) {
-        if ( userRepository.existsByUsername(username) )
+        if ( userRepository.existsByUsernameLower(UserUtil.usernameToLowerCase(username)) )
             throw new UserException("username_exists");
 
         User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
         user.setUsername(username);
+        user.setUsernameLower(UserUtil.usernameToLowerCase(username));
         userRepository.save(user);
     }
 
