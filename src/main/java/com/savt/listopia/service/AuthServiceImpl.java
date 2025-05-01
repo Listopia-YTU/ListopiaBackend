@@ -70,7 +70,7 @@ public class AuthServiceImpl implements AuthService {
 
         // Properly construct the URL
         String retUrl = String.format(
-                "https://api.ensargok.com/api/v1/auth/verify?mail=%s&token=%s",
+                "https://api.ensargok.com/api/v1/auth/verify?email=%s&token=%s",
                 URLEncoder.encode(mail, StandardCharsets.UTF_8),
                 URLEncoder.encode(token, StandardCharsets.UTF_8)
         );
