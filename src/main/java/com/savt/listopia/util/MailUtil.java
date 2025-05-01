@@ -10,6 +10,10 @@ public class MailUtil {
             String htmlPart,
             String subject
     ) {
-        MailSender.sendMailFromListopia(receiverMail, receiverName, textPart, htmlPart, subject);
+        if (SpringEnvironment.isProduction()) {
+            MailSender.sendMailFromListopia(receiverMail, receiverName, textPart, htmlPart, subject);
+        } else {
+            System.out.println("Email not sent — not in production");
+        }
     }
 }
