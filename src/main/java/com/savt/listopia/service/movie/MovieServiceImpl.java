@@ -93,7 +93,8 @@ public class MovieServiceImpl implements MovieService {
     @Override
     public Page<MovieFrontDTO> searchByTitle(String title, Integer pageNumber, Integer pageSize) {
         Pageable pageDetails = PageRequest.of(pageNumber, pageSize);
-        Page<Movie> movies = movieRepository.findAllByTitleLikeIgnoreCase(pageDetails, title);
+        String searchQuery = "%" + title + "%";
+        Page<Movie> movies = movieRepository.findAllByTitleLikeIgnoreCase(pageDetails, searchQuery);
         return movieFrontMapper.toDTOPage(movies, movieImageRepository);
     }
 
