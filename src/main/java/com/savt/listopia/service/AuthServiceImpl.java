@@ -20,6 +20,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Service;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Optional;
@@ -63,24 +65,47 @@ public class AuthServiceImpl implements AuthService {
         return duration.toMinutes() >= minutes;
     }
 
-    private void sendUserMail(String mail, String token) {
+    private void sendUserMail(String name, String mail, String token) {
         LOGGER.info("Sending verification user mail to {}", mail);
-        // TODO: fix url pls
-        String retUrl = "https://api.ensargok.com/api/v1/auth/verify?mail=" + mail + "&token=" + token;
-        String mailContent = """
-        Hello, this is your email verification token!
-        
-        Click this URL to verify your account:
-        """ + retUrl;
+
+        // Properly construct the URL
+        String retUrl = String.format(
+                "https://api.ensargok.com/api/v1/auth/verify?mail=%s&token=%s",
+                URLEncoder.encode(mail, StandardCharsets.UTF_8),
+                URLEncoder.encode(token, StandardCharsets.UTF_8)
+        );
+
+        String mailContentText = String.format("""
+        Hello %s,
+
+        This is your email verification link!
+
+        Please click the URL below to verify your account:
+        %s
+        """, name, retUrl);
+
+        String mailContentHtml = String.format("""
+        <html>
+        <body>
+            <p>Hello %s,</p>
+            <p>This is your email verification link!</p>
+            <p><a href="%s">Click here to verify your account</a></p>
+        </body>
+        </html>
+        """, name, retUrl);
+
         MailUtil.sendMail(
                 mail,
-                "Mail Verification Mail | Listopia",
-                mailContent
+                name,
+                mailContentText,
+                mailContentHtml,
+                "Mail Verification | Listopia"
         );
-        LOGGER.warn("mailContent: {}", mailContent);
+
+        LOGGER.info("Verification email content sent to {}: {}", mail, mailContentText);
     }
 
-    private void checkAndSendUserVerificationMail(String email) {
+    private void checkAndSendUserVerificationMail(String name, String email) {
         // check if a token is sent within 15 minutes
         Optional<UserVerification> verification = userVerificationRepository.findByMail(email);
         if (verification.isPresent()) {
@@ -91,7 +116,7 @@ public class AuthServiceImpl implements AuthService {
                 userVerification.setSentAt(System.currentTimeMillis());
                 userVerification.setToken(token);
                 UserVerification sent = userVerificationRepository.save(userVerification);
-                sendUserMail(sent.getMail(), sent.getToken());
+                sendUserMail(name, sent.getMail(), sent.getToken());
             }
         } else {
             // new user, send mail
@@ -100,7 +125,7 @@ public class AuthServiceImpl implements AuthService {
             userVerification.setSentAt(System.currentTimeMillis());
             userVerification.setMail(email);
             UserVerification sent = userVerificationRepository.save(userVerification);
-            sendUserMail(sent.getMail(), sent.getToken());
+            sendUserMail(name, sent.getMail(), sent.getToken());
         }
     }
 
@@ -135,7 +160,8 @@ public class AuthServiceImpl implements AuthService {
         pendingUser.setCreatedAt(System.currentTimeMillis());
         PendingUser user = pendingUserRepository.save(pendingUser);
 
-        checkAndSendUserVerificationMail(user.getEmail());
+        String fullName = String.format("%s %s", user.getFirstName(), user.getLastName() );
+        checkAndSendUserVerificationMail(fullName, user.getEmail());
     }
 
     @Override
@@ -145,7 +171,8 @@ public class AuthServiceImpl implements AuthService {
         if ( optionalPendingUser.isPresent() ) {
             PendingUser pendingUser = optionalPendingUser.get();
             if ( PasswordUtil.verifyPassword(password, pendingUser.getHashedPassword()) ) {
-                checkAndSendUserVerificationMail(pendingUser.getEmail());
+                String fullName = String.format("%s %s", pendingUser.getFirstName(), pendingUser.getLastName() );
+                checkAndSendUserVerificationMail(fullName, pendingUser.getEmail());
                 throw new APIException("email_not_verified");
             } else {
                 throw new APIException("username_or_password_wrong");
@@ -183,7 +210,8 @@ public class AuthServiceImpl implements AuthService {
             return "error_not_found";
 
         if ( isOlderThanMinutes(userVerification.getSentAt(), 15) ) {
-            checkAndSendUserVerificationMail(pendingUser.getEmail());
+            String fullName = String.format("%s %s", pendingUser.getFirstName(), pendingUser.getLastName() );
+            checkAndSendUserVerificationMail(fullName, pendingUser.getEmail());
             return "error_verification_timeout";
         }
 

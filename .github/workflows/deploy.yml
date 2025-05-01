@@ -45,4 +45,6 @@ jobs:
               -e DB_URL="${{ secrets.DB_URL }}" \
               -e DB_USERNAME="${{ secrets.DB_USERNAME }}" \
               -e DB_PASSWORD="${{ secrets.DB_PASSWORD }}" \
+              -e MJ_APIKEY_PUBLIC="${{ secrets.MJ_APIKEY_PUBLIC }}" \
+              -e MJ_APIKEY_PRIVATE="${{ secrets.MJ_APIKEY_PRIVATE }}" \
               listopia-app
