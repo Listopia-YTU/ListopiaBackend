@@ -97,4 +97,16 @@ public class UserMessageController {
         return ResponseEntity.ok(messageDTOS);
     }
 
+    @PostMapping("/read")
+    public ResponseEntity<APIResponse> markAsRead(
+            @RequestParam(name = "userUuid") String userUuid,
+            @RequestParam(name = "time") Long time
+    ) {
+        Long userId = userService.getCurrentUserIdOrThrow();
+        UUID uuid = UUID.fromString(userUuid);
+        Long friendId = userService.getUserIdFromUUID(uuid);
+        userMessageService.markAsRead(userId, friendId, time);
+        return ResponseEntity.ok(APIResponse.success("messages_mark_as_read"));
+    }
+
 }

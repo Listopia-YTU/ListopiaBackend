@@ -89,4 +89,11 @@ public class UserMessageServiceImpl implements UserMessageService {
         Pageable pageable = PageRequest.of(page, size, Sort.by("sentAtTimestampSeconds").descending());
         return privateMessageMapper.toDTOPage(privateMessageRepository.findAllByFromUserIdAndToUserId(fromId, userId, pageable));
     }
+
+    @Override
+    public void markAsRead(Long userId, Long receiverId, Long messageId) {
+        User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
+        User receiver = userRepository.findById(receiverId).orElseThrow(UserNotFoundException::new);
+        privateMessageRepository.markMessagesAsReadBefore(user, receiver, messageId);
+    }
 }

@@ -1,9 +1,13 @@
 package com.savt.listopia.repository;
 
 import com.savt.listopia.model.user.PrivateMessage;
+import com.savt.listopia.model.user.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.Optional;
 
@@ -13,4 +17,11 @@ public interface PrivateMessageRepository extends JpaRepository<PrivateMessage, 
     Page<PrivateMessage> findAllByFromUserId(Long fromId, Pageable page);
     Page<PrivateMessage> findAllByIsReportedTrue(Pageable page);
     Optional<PrivateMessage> findPrivateMessageById(Long id);
+
+    @Modifying
+    @Query("UPDATE PrivateMessage pm SET pm.isRead = true WHERE pm.fromUser = :fromUser AND pm.toUser = :toUser AND pm.sentAtTimestampSeconds < :timestamp")
+    int markMessagesAsReadBefore(
+            @Param("fromUser") User fromUser,
+            @Param("toUser") User toUser,
+            @Param("timestamp") Long timestamp);
 }
