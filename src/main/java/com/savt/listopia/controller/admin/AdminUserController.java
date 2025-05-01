@@ -36,7 +36,6 @@ public class AdminUserController {
         User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
 
         userService.deleteAccount(user.getId());
-        sessionService.deleteUserSessions(user);
     }
 
 }

@@ -37,13 +37,15 @@ public class UserServiceImpl implements UserService {
     private final UserMapper userMapper;
     private final UserActivityService userActivityService;
     private final NotificationService notificationService;
+    private final SessionService sessionService;
 
-    public UserServiceImpl(UserRepository userRepository, ModelMapper modelMapper, UserMapper userMapper, UserActivityService userActivityService, NotificationService notificationService) {
+    public UserServiceImpl(UserRepository userRepository, ModelMapper modelMapper, UserMapper userMapper, UserActivityService userActivityService, NotificationService notificationService, SessionService sessionService) {
         this.userRepository = userRepository;
         this.modelMapper = modelMapper;
         this.userMapper = userMapper;
         this.userActivityService = userActivityService;
         this.notificationService = notificationService;
+        this.sessionService = sessionService;
     }
 
     @Override
@@ -138,6 +140,8 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
         user.setIsDeleted(true);
         userRepository.save(user);
+
+        sessionService.deleteUserSessions(user);
     }
 
     @Override
