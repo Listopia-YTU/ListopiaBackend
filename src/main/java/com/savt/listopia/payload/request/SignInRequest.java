@@ -10,4 +10,7 @@ public class SignInRequest {
 
     @NotBlank
     private String password;
+
+    @NotBlank
+    private String recaptchaToken;
 }

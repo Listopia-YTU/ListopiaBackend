@@ -23,4 +23,7 @@ public class SignUpRequest {
 
     @ValidUsername
     private String username;
+
+    @NotBlank
+    private String recaptchaToken;
 }
