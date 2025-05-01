@@ -17,10 +17,11 @@ public interface UserService {
     UserDTO getUserById(Long id);
     Optional<Long> getCurrentUserId();
     Long getCurrentUserIdOrThrow();
-    void ChangeUsername(Long userId, String username);
     Long getUserIdFromUUID(UUID uuid);
+    void changeUsername(Long userId, String username);
     void changePassword(Long userId, String password);
     void changeBiography(Long userId, String biography);
+    void deleteAccount(Long userId);
 
     Page<UserActivityDTO> getUserActivities(Long userId, int pageNumber, int pageSize);
     Page<NotificationDTO> getUserNotifications(Long userId, Integer pageNumber, Integer pageSize);

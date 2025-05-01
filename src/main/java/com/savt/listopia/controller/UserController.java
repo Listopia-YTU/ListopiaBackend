@@ -49,7 +49,7 @@ public class UserController {
     public ResponseEntity<APIResponse> ChangeUsername(@Valid @RequestBody ChangeUsernameRequest changeUsernameRequest) {
         Long userId = userService.getCurrentUserIdOrThrow();
         LOGGER.trace("change_username:id: {}", userId);
-        userService.ChangeUsername(userId, changeUsernameRequest.getNewUsername());
+        userService.changeUsername(userId, changeUsernameRequest.getNewUsername());
         return ResponseEntity.ok( APIResponse.builder().success(true).message("username_changed").build() );
     }
 

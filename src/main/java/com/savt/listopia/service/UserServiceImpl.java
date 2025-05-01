@@ -100,7 +100,7 @@ public class UserServiceImpl implements UserService {
         return getCurrentUserId().orElseThrow(UserNotAuthorizedException::new);
     }
 
-    public void ChangeUsername(Long userId, String username) {
+    public void changeUsername(Long userId, String username) {
         if ( userRepository.existsByUsernameLower(UserUtil.usernameToLowerCase(username)) )
             throw new UserException("username_exists");
 
@@ -129,6 +129,11 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
         user.setBiography(biography);
         userRepository.save(user);
+    }
+
+    @Override
+    public void deleteAccount(Long userId) {
+        // TODO: implement
     }
 
     @Override
