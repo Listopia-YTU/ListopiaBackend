@@ -42,7 +42,7 @@ public class SearchController {
         result.getResults().put(Category.movies, movies);
     }
 
-    @GetMapping("/")
+    @GetMapping("")
     public ResponseEntity<QueryResultDTO> index(
             @RequestParam String query,
             @RequestParam List<Category> category
