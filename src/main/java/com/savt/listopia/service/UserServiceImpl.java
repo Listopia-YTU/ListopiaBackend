@@ -19,6 +19,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -154,6 +156,13 @@ public class UserServiceImpl implements UserService {
     public void userNotifiedBefore(Long userId, Long timestamp) {
         User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
         notificationService.markAsRead(user, timestamp);
+    }
+
+    @Override
+    public Page<UserDTO> searchUsers(String searchText, int pageNumber, int pageSize) {
+        Pageable pageable = PageRequest.of(pageNumber, pageSize);
+        Page<User> users = userRepository.searchUsers(searchText, pageable);
+        return userMapper.toDTOPage(users);
     }
 
 }

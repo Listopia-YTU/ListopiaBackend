@@ -2,6 +2,7 @@ package com.savt.listopia.service.movie;
 
 import com.savt.listopia.exception.APIException;
 import com.savt.listopia.exception.ResourceNotFoundException;
+import com.savt.listopia.mapper.MovieFrontMapper;
 import com.savt.listopia.model.movie.Genre;
 import com.savt.listopia.model.movie.Movie;
 import com.savt.listopia.payload.dto.movie.MovieDTO;
@@ -32,15 +33,17 @@ public class MovieServiceImpl implements MovieService {
 
     private final MovieImageRepository movieImageRepository;
     private final GenreRepository genreRepository;
+    private final MovieFrontMapper movieFrontMapper;
 
     @Value("${tmdb.apiKey}")
     private String tmdbKey;
 
-    public MovieServiceImpl(ModelMapper modelMapper, MovieRepository movieRepository, MovieImageRepository movieImageRepository, GenreRepository genreRepository) {
+    public MovieServiceImpl(ModelMapper modelMapper, MovieRepository movieRepository, MovieImageRepository movieImageRepository, GenreRepository genreRepository, MovieFrontMapper movieFrontMapper) {
         this.modelMapper = modelMapper;
         this.movieRepository = movieRepository;
         this.movieImageRepository = movieImageRepository;
         this.genreRepository = genreRepository;
+        this.movieFrontMapper = movieFrontMapper;
     }
 
     @Override
@@ -85,6 +88,13 @@ public class MovieServiceImpl implements MovieService {
         movieFrontResponse.setTotalPages(pageMovies.getTotalPages());
         movieFrontResponse.setLastPage(pageMovies.isLast());
         return movieFrontResponse;
+    }
+
+    @Override
+    public Page<MovieFrontDTO> searchByTitle(String title, Integer pageNumber, Integer pageSize) {
+        Pageable pageDetails = PageRequest.of(pageNumber, pageSize);
+        Page<Movie> movies = movieRepository.findAllByTitleLikeIgnoreCase(pageDetails, title);
+        return movieFrontMapper.toDTOPage(movies, movieImageRepository);
     }
 
     @Override

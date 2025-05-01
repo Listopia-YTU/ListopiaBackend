@@ -26,4 +26,6 @@ public interface UserService {
     Page<UserActivityDTO> getUserActivities(Long userId, int pageNumber, int pageSize);
     Page<NotificationDTO> getUserNotifications(Long userId, Integer pageNumber, Integer pageSize);
     void userNotifiedBefore(Long userId, Long timestamp);
+
+    Page<UserDTO> searchUsers(String searchText, int pageNumber, int pageSize);
 }

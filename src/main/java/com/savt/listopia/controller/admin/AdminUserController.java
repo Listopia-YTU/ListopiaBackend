@@ -13,8 +13,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.UUID;
-
 @RestController
 @RequestMapping("/api/v1/admin/user")
 public class AdminUserController {
@@ -22,10 +20,6 @@ public class AdminUserController {
     private final UserService userService;
     private final SessionService sessionService;
     private final UserRepository userRepository;
-
-    private static UUID parseUuid(String uuid) {
-        return UUIDParser.parseUUIDorThrow(uuid);
-    }
 
     public AdminUserController(AuthService authService, UserService userService, SessionService sessionService, UserRepository userRepository) {
         this.authService = authService;
@@ -38,7 +32,7 @@ public class AdminUserController {
     public void deleteAccount(@PathVariable("uuid") String uuid) {
         authService.requireRoleOrThrow(UserRole.ADMIN);
 
-        Long userId = userService.getUserIdFromUUID(parseUuid(uuid));
+        Long userId = userService.getUserIdFromUUID(UUIDParser.parse(uuid));
         User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
 
         userService.deleteAccount(user.getId());
