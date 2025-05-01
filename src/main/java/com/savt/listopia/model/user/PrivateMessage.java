@@ -22,6 +22,7 @@ public class PrivateMessage {
     Long sentAtTimestampSeconds;
 
     Boolean isReported = false;
+    Boolean isRead = false;
 
     @Column(columnDefinition = "TEXT", length = 1024)
     String message;

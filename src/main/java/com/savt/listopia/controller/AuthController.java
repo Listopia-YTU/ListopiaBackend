@@ -1,13 +1,14 @@
 package com.savt.listopia.controller;
 
-import com.savt.listopia.exception.APIException;
 import com.savt.listopia.model.user.Session;
 import com.savt.listopia.payload.response.APIResponse;
 import com.savt.listopia.payload.request.SignInRequest;
 import com.savt.listopia.payload.request.SignUpRequest;
 import com.savt.listopia.service.AuthService;
+import com.savt.listopia.service.CaptchaService;
 import com.savt.listopia.service.SessionService;
 import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
@@ -25,28 +26,30 @@ public class AuthController {
     private static final Logger LOGGER = LoggerFactory.getLogger(AuthController.class);
     private final SessionService sessionService;
     private final AuthService authService;
+    private final CaptchaService captchaService;
 
-    public AuthController(SessionService sessionService, AuthService authService) {
+    public AuthController(SessionService sessionService, AuthService authService, CaptchaService captchaService) {
         this.sessionService = sessionService;
         this.authService = authService;
+        this.captchaService = captchaService;
     }
 
     @PostMapping("/signup")
-    public ResponseEntity<APIResponse> signUp(@Valid @RequestBody SignUpRequest signUpRequest, HttpServletResponse response) {
+    public ResponseEntity<APIResponse> signUp(@Valid @RequestBody SignUpRequest signUpRequest, HttpServletRequest request) {
         String token = signUpRequest.getRecaptchaToken();
-        if (token == null) {
-            throw new APIException("Recaptcha token is invalid");
-        }
+        String clientIp = request.getRemoteAddr();
+        captchaService.validateCaptcha(token, "register", clientIp);
+
         authService.handleSignUp(signUpRequest);
         return ResponseEntity.ok(APIResponse.success("signup_success_verify_email"));
     }
 
     @PostMapping("/signin")
-    public ResponseEntity<APIResponse> signIn(@Valid @RequestBody SignInRequest signInRequest, HttpServletResponse response) {
+    public ResponseEntity<APIResponse> signIn(@Valid @RequestBody SignInRequest signInRequest, HttpServletResponse response, HttpServletRequest request) {
         String token = signInRequest.getRecaptchaToken();
-        if (token == null) {
-            throw new APIException("Recaptcha token is invalid");
-        }
+        String clientIp = request.getRemoteAddr();
+        captchaService.validateCaptcha(token, "login", clientIp);
+
         ResponseCookie sessionCookie = authService.handleSignIn(signInRequest.getUsername(), signInRequest.getPassword());
         response.setHeader(HttpHeaders.SET_COOKIE, sessionCookie.toString());
         return ResponseEntity.ok(APIResponse.builder().success(true).message("logged_in").build());

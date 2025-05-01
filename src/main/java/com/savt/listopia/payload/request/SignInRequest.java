@@ -11,5 +11,6 @@ public class SignInRequest {
     @NotBlank
     private String password;
 
-    private String recaptchaToken = "";
+    @NotBlank
+    private String recaptchaToken;
 }

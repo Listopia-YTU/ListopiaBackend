@@ -15,4 +15,6 @@ public class PrivateMessageDTO {
     Long sentAt;
 
     String message;
+
+    Boolean isRead;
 }
