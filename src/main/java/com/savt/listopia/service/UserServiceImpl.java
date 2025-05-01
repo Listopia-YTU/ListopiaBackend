@@ -133,7 +133,9 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void deleteAccount(Long userId) {
-        // TODO: implement
+        User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
+        user.setIsDeleted(true);
+        userRepository.save(user);
     }
 
     @Override

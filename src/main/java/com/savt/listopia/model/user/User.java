@@ -44,6 +44,8 @@ public class User {
     private Long lastOnline;
     private Long createdAt;
 
+    private Boolean isDeleted = Boolean.FALSE;
+
     @ManyToMany
     @JoinTable(
             name = "user_liked_movies",

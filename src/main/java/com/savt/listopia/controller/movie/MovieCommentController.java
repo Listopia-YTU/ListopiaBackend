@@ -5,6 +5,7 @@ import com.savt.listopia.payload.dto.MovieCommentDTO;
 import com.savt.listopia.payload.response.APIResponse;
 import com.savt.listopia.service.UserService;
 import com.savt.listopia.service.user.UserMovieService;
+import com.savt.listopia.util.UUIDParser;
 import jakarta.validation.constraints.Max;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
@@ -47,7 +48,7 @@ public class MovieCommentController {
         if ( fromUser.isEmpty() ) {
             dto = userMovieService.getMovieCommentForMovie(movieId,pageNumber,pageSize);
         } else {
-            Long userId = userService.getUserIdFromUUID(UUID.fromString(fromUser));
+            Long userId = userService.getUserIdFromUUID(UUIDParser.parse(fromUser));
             dto = userMovieService.getMovieCommentForMovieFromUser(movieId, userId, pageNumber, pageSize);
         }
         return ResponseEntity.ok(dto);
