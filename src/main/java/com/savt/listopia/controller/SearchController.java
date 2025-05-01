@@ -21,8 +21,8 @@ import java.util.function.BiConsumer;
 @RequestMapping("/api/v1/search")
 public class SearchController {
     private final Map<Category, BiConsumer<QueryResultDTO, String>> categoryHandlers = Map.of(
-            Category.USERS, this::handleUsers,
-            Category.MOVIES, this::handleMovies
+            Category.users, this::handleUsers,
+            Category.movies, this::handleMovies
     );
     private final UserService userService;
     private final MovieService movieService;
@@ -34,27 +34,27 @@ public class SearchController {
 
     private void handleUsers(QueryResultDTO result, String query) {
         Page<UserDTO> users = userService.searchUsers(query, 0, 15);
-        result.getResults().put(Category.USERS, users);
+        result.getResults().put(Category.users, users);
     }
 
     private void handleMovies(QueryResultDTO result, String query) {
         Page<MovieFrontDTO> movies = movieService.searchByTitle(query, 0, 15);
-        result.getResults().put(Category.MOVIES, movies);
+        result.getResults().put(Category.movies, movies);
     }
 
     @GetMapping("/")
     public ResponseEntity<QueryResultDTO> index(
             @RequestParam String query,
-            @RequestParam List<Category> categories // Kategoriler isteğe bağlı
+            @RequestParam List<Category> category
     ) {
-        if ( categories.contains(Category.ALL) ) {
-            categories = Category.all();
+        if ( category.contains(Category.all) ) {
+            category = Category.all();
         }
 
         QueryResultDTO queryResultDTO = new QueryResultDTO();
 
-        for ( Category category : categories ) {
-            BiConsumer<QueryResultDTO, String> handler = categoryHandlers.get(category);
+        for ( Category c : category) {
+            BiConsumer<QueryResultDTO, String> handler = categoryHandlers.get(c);
             if (handler != null) {
                 handler.accept(queryResultDTO, query);
             }

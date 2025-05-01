@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.data.domain.Page;
 
+import java.util.HashMap;
 import java.util.Map;
 
 @Getter
@@ -14,5 +15,5 @@ import java.util.Map;
 @NoArgsConstructor
 @AllArgsConstructor
 public class QueryResultDTO {
-    private Map<Category, Page<?>> results;
+    private Map<Category, Page<?>> results = new HashMap<>();
 }

@@ -1,23 +1,21 @@
 package com.savt.listopia.model;
 
 import com.savt.listopia.exception.APIException;
+import lombok.Getter;
 
 import java.util.List;
 import java.util.stream.Stream;
 
+@Getter
 public enum Category {
-    ALL("all"),
-    USERS("users"),
-    MOVIES("movies");
+    all("all"),
+    users("users"),
+    movies("movies");
 
     private final String name;
 
     Category(String name) {
         this.name = name;
-    }
-
-    public String getName() {
-        return name;
     }
 
     @Override
@@ -36,7 +34,7 @@ public enum Category {
 
     public static List<Category> all() {
         return Stream.of(Category.values())
-                .filter(category -> category != Category.ALL)
+                .filter(category -> category != Category.all)
                 .toList();
     }
 
