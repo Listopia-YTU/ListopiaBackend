@@ -14,6 +14,7 @@ import com.savt.listopia.security.request.ChangeUsernameRequest;
 import com.savt.listopia.service.UserService;
 import com.savt.listopia.service.user.UserFriendService;
 import com.savt.listopia.service.user.UserMovieService;
+import com.savt.listopia.util.UUIDParser;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import org.slf4j.Logger;
@@ -74,6 +75,13 @@ public class UserController {
         return ResponseEntity.ok(userDTO);
     }
 
+    @DeleteMapping("/me")
+    public ResponseEntity<APIResponse> deleteMe() {
+        Long userId = userService.getCurrentUserId().orElseThrow(UserNotAuthorizedException::new);
+        userService.deleteAccount(userId);
+        return ResponseEntity.ok( APIResponse.success("me_deleted") );
+    }
+
     @GetMapping("/uuid/{uuid}/friends")
     public ResponseEntity<Page<UserDTO>> Friends(
             @PathVariable String uuid,
@@ -81,7 +89,7 @@ public class UserController {
             @Max(50) @RequestParam(name = "pageSize", defaultValue = AppConstants.PAGE_SIZE, required = false) Integer pageSize
     ) {
         return ResponseEntity.ok(
-                userFriendService.getUserFriends(userService.getUserIdFromUUID(UUID.fromString(uuid)),
+                userFriendService.getUserFriends(userService.getUserIdFromUUID(UUIDParser.parse(uuid)),
                 pageNumber, pageSize)
         );
     }
@@ -103,7 +111,7 @@ public class UserController {
             @RequestParam(name = "pageNumber", defaultValue = AppConstants.PAGE_NUMBER, required = false) Integer pageNumber,
             @Max(50) @RequestParam(name = "pageSize", defaultValue = AppConstants.PAGE_SIZE, required = false) Integer pageSize
     ) {
-        Long userId = userService.getUserIdFromUUID(UUID.fromString(uuid));
+        Long userId = userService.getUserIdFromUUID(UUIDParser.parse(uuid));
         Page<MovieFrontDTO> movieFrontDTOPage = userMovieService.getUserWatchlist(userId, pageNumber, pageSize);
         return ResponseEntity.ok(movieFrontDTOPage);
     }
@@ -114,7 +122,7 @@ public class UserController {
             @RequestParam(name = "pageNumber", defaultValue = AppConstants.PAGE_NUMBER, required = false) Integer pageNumber,
             @Max(50) @RequestParam(name = "pageSize", defaultValue = AppConstants.PAGE_SIZE, required = false) Integer pageSize
     ) {
-        Long userId = userService.getUserIdFromUUID(UUID.fromString(uuid));
+        Long userId = userService.getUserIdFromUUID(UUIDParser.parse(uuid));
         Page<MovieFrontDTO> movieFrontDTOPage = userMovieService.getUserWatched(userId, pageNumber, pageSize);
         return ResponseEntity.ok(movieFrontDTOPage);
     }
@@ -125,7 +133,7 @@ public class UserController {
             @RequestParam(name = "pageNumber", defaultValue = AppConstants.PAGE_NUMBER, required = false) Integer pageNumber,
             @Max(50) @RequestParam(name = "pageSize", defaultValue = AppConstants.PAGE_SIZE, required = false) Integer pageSize
     ) {
-        Long userId = userService.getUserIdFromUUID(UUID.fromString(uuid));
+        Long userId = userService.getUserIdFromUUID(UUIDParser.parse(uuid));
         Page<UserActivityDTO> activityDTOS = userService.getUserActivities(userId, pageNumber, pageSize);
         return ResponseEntity.ok(activityDTOS);
     }

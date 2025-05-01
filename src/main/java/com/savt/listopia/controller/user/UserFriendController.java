@@ -7,6 +7,7 @@ import com.savt.listopia.payload.dto.UserFriendRequestDTO;
 import com.savt.listopia.payload.response.APIResponse;
 import com.savt.listopia.service.UserService;
 import com.savt.listopia.service.user.UserFriendService;
+import com.savt.listopia.util.UUIDParser;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import org.springframework.data.domain.Page;
@@ -29,21 +30,21 @@ public class UserFriendController {
     @PostMapping("/add/{uuid}")
     public ResponseEntity<APIResponse> AddFriend(@Valid @PathVariable String uuid) {
         Long userId = userService.getCurrentUserId().orElseThrow(UserNotAuthorizedException::new);
-        userFriendService.userSentOrAcceptFriendRequest(userId, UUID.fromString(uuid));
+        userFriendService.userSentOrAcceptFriendRequest(userId, UUIDParser.parse(uuid));
         return ResponseEntity.ok(APIResponse.builder().success(true).message("friend_request_sent").build());
     }
 
     @PostMapping("/reject/{uuid}")
     public ResponseEntity<APIResponse> rejectFriend(@Valid @PathVariable String uuid) {
         Long userId = userService.getCurrentUserId().orElseThrow(UserNotFoundException::new);
-        userFriendService.userRejectedFriend(userId, UUID.fromString(uuid));
+        userFriendService.userRejectedFriend(userId, UUIDParser.parse(uuid));
         return ResponseEntity.ok(APIResponse.builder().success(true).message("friend_rejected").build());
     }
 
     @DeleteMapping("/remove/{uuid}")
     public ResponseEntity<APIResponse> removeFriend(@Valid @PathVariable String uuid) {
         Long userId = userService.getCurrentUserId().orElseThrow(UserNotFoundException::new);
-        userFriendService.userRemovedFriend(userId, UUID.fromString(uuid));
+        userFriendService.userRemovedFriend(userId, UUIDParser.parse(uuid));
         return ResponseEntity.ok(APIResponse.builder().success(true).message("friend_rejected").build());
     }
 
@@ -70,7 +71,7 @@ public class UserFriendController {
     @DeleteMapping("/request/{uuid}")
     public ResponseEntity<APIResponse> removeFriendRequest(@Valid @PathVariable String uuid) {
         Long userId = userService.getCurrentUserId().orElseThrow(UserNotFoundException::new);
-        userFriendService.userCancelFriendRequest(userId, UUID.fromString(uuid));
+        userFriendService.userCancelFriendRequest(userId, UUIDParser.parse(uuid));
         return ResponseEntity.ok(APIResponse.builder().success(true).message("friend_request_cancelled").build());
     }
 }

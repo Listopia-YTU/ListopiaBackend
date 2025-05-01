@@ -2,89 +2,16 @@ package com.savt.listopia.service;
 
 import com.savt.listopia.model.user.Session;
 import com.savt.listopia.model.user.User;
-import com.savt.listopia.repository.SessionRepository;
-import com.savt.listopia.security.auth.AuthenticationToken;
 import org.springframework.http.ResponseCookie;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-import java.time.Duration;
-import java.util.UUID;
-
 @Service
-public class SessionService {
-    private static final long SESSION_EXPIRY_TIME = 7 * 24 * 60 * 60 * 1000; // 1 hafta
-
-    private final SessionRepository sessionRepository;
-
-    public SessionService(SessionRepository sessionRepository) {
-        this.sessionRepository = sessionRepository;
-    }
-
-    public Session createSession(User user) {
-        Session session = new Session();
-
-        long now = System.currentTimeMillis();
-        long end = now + SESSION_EXPIRY_TIME;
-
-        session.setCreatedAt(now);
-        session.setUserId(user.getId());
-        session.setExpiresAt(end);
-
-        sessionRepository.save(session);
-
-        return session;
-    }
-
-    public ResponseCookie createCookie(Session session) {
-        return ResponseCookie.from("_SESSION", session.getUuid().toString())
-                .secure(true)
-                .httpOnly(true)
-                .path("/")
-                .sameSite("None")
-                .maxAge(Duration.ofDays(7))
-                .build();
-    }
-
-    public void deleteSession(Session session) {
-        sessionRepository.delete(session);
-    }
-
-    public Session getAndUpdateSession(String uuidStr) {
-        UUID uuid = UUID.fromString(uuidStr);
-
-        Session session = sessionRepository.findByUuid(uuid).orElse(null);
-
-        if ( session == null )
-            return null;
-
-        // check if session expired
-        long end = session.getExpiresAt();
-        long now = System.currentTimeMillis();
-
-        if ( now < end ) {
-            // update expire date
-            session.setExpiresAt(now + SESSION_EXPIRY_TIME);
-            sessionRepository.save(session);
-            return session;
-        } else {
-            // session expired
-            sessionRepository.delete(session);
-            return null;
-        }
-
-    }
-
-    public Session getCurrentSession() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null)
-            return null;
-
-        if (authentication instanceof AuthenticationToken authenticationToken) {
-            return authenticationToken.getPrincipal();
-        }
-
-        return null;
-    }
+public interface SessionService {
+    void deleteSession(Session session);
+    void deleteUserSessions(User user);
+    Session createSession(User user);
+    ResponseCookie createCookie(Session session);
+    Session getAndUpdateSession(String uuidStr);
+    Session getCurrentSession();
+    void deleteSessionsBefore(Long time);
 }

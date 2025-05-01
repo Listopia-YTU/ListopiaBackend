@@ -19,6 +19,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -35,13 +37,15 @@ public class UserServiceImpl implements UserService {
     private final UserMapper userMapper;
     private final UserActivityService userActivityService;
     private final NotificationService notificationService;
+    private final SessionService sessionService;
 
-    public UserServiceImpl(UserRepository userRepository, ModelMapper modelMapper, UserMapper userMapper, UserActivityService userActivityService, NotificationService notificationService) {
+    public UserServiceImpl(UserRepository userRepository, ModelMapper modelMapper, UserMapper userMapper, UserActivityService userActivityService, NotificationService notificationService, SessionService sessionService) {
         this.userRepository = userRepository;
         this.modelMapper = modelMapper;
         this.userMapper = userMapper;
         this.userActivityService = userActivityService;
         this.notificationService = notificationService;
+        this.sessionService = sessionService;
     }
 
     @Override
@@ -133,7 +137,11 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void deleteAccount(Long userId) {
-        // TODO: implement
+        User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
+        user.setIsDeleted(true);
+        userRepository.save(user);
+
+        sessionService.deleteUserSessions(user);
     }
 
     @Override
@@ -152,6 +160,13 @@ public class UserServiceImpl implements UserService {
     public void userNotifiedBefore(Long userId, Long timestamp) {
         User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
         notificationService.markAsRead(user, timestamp);
+    }
+
+    @Override
+    public Page<UserDTO> searchUsers(String searchText, int pageNumber, int pageSize) {
+        Pageable pageable = PageRequest.of(pageNumber, pageSize);
+        Page<User> users = userRepository.searchUsers(searchText, pageable);
+        return userMapper.toDTOPage(users);
     }
 
 }

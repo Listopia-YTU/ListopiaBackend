@@ -189,6 +189,10 @@ public class AuthServiceImpl implements AuthService {
             throw new APIException("username_or_password_wrong");
         }
 
+        if (Boolean.TRUE.equals(user.getIsDeleted())) {
+            throw new APIException("account_deleted");
+        }
+
         Session session = sessionService.createSession(user);
         return sessionService.createCookie(session);
     }

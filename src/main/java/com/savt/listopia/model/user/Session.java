@@ -10,11 +10,11 @@ import java.util.UUID;
 @Entity(name = "sessions")
 public class Session {
     @Id
-    UUID uuid = UUID.randomUUID();
+    private UUID uuid = UUID.randomUUID();
 
-    Long userId;
-    String ipAddress; // will be none for now.
+    private Long userId;
+    private String ipAddress;
 
-    long createdAt;
-    long expiresAt;
+    private long createdAt;
+    private long expiresAt;
 }

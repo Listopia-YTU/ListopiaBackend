@@ -7,6 +7,7 @@ import com.savt.listopia.payload.response.APIResponse;
 import com.savt.listopia.security.request.MessageUserRequest;
 import com.savt.listopia.service.UserService;
 import com.savt.listopia.service.user.UserMessageService;
+import com.savt.listopia.util.UUIDParser;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import org.springframework.data.domain.Page;
@@ -74,7 +75,7 @@ public class UserMessageController {
         Long userId = userService.getCurrentUserIdOrThrow();
         Page<PrivateMessageDTO> messageDTOS = userMessageService.getAllMessagesReceivedFrom(
                 userId,
-                userService.getUserIdFromUUID(UUID.fromString(userUuid)),
+                userService.getUserIdFromUUID(UUIDParser.parse(userUuid)),
                 pageNumber,
                 pageSize
         );
@@ -90,7 +91,7 @@ public class UserMessageController {
         Long userId = userService.getCurrentUserIdOrThrow();
         Page<PrivateMessageDTO> messageDTOS = userMessageService.getAllMessagesSentTo(
                 userId,
-                userService.getUserIdFromUUID(UUID.fromString(userUuid)),
+                userService.getUserIdFromUUID(UUIDParser.parse(userUuid)),
                 pageNumber,
                 pageSize
         );
@@ -103,7 +104,7 @@ public class UserMessageController {
             @RequestParam(name = "time") Long time
     ) {
         Long userId = userService.getCurrentUserIdOrThrow();
-        UUID uuid = UUID.fromString(userUuid);
+        UUID uuid = UUIDParser.parse(userUuid);
         Long friendId = userService.getUserIdFromUUID(uuid);
         userMessageService.markAsRead(userId, friendId, time);
         return ResponseEntity.ok(APIResponse.success("messages_mark_as_read"));
