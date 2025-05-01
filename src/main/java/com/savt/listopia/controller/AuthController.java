@@ -1,5 +1,6 @@
 package com.savt.listopia.controller;
 
+import com.savt.listopia.exception.APIException;
 import com.savt.listopia.model.user.Session;
 import com.savt.listopia.payload.response.APIResponse;
 import com.savt.listopia.payload.request.SignInRequest;
@@ -32,12 +33,20 @@ public class AuthController {
 
     @PostMapping("/signup")
     public ResponseEntity<APIResponse> signUp(@Valid @RequestBody SignUpRequest signUpRequest, HttpServletResponse response) {
+        String token = signUpRequest.getRecaptchaToken();
+        if (token == null) {
+            throw new APIException("Recaptcha token is invalid");
+        }
         authService.handleSignUp(signUpRequest);
         return ResponseEntity.ok(APIResponse.success("signup_success_verify_email"));
     }
 
     @PostMapping("/signin")
     public ResponseEntity<APIResponse> signIn(@Valid @RequestBody SignInRequest signInRequest, HttpServletResponse response) {
+        String token = signInRequest.getRecaptchaToken();
+        if (token == null) {
+            throw new APIException("Recaptcha token is invalid");
+        }
         ResponseCookie sessionCookie = authService.handleSignIn(signInRequest.getUsername(), signInRequest.getPassword());
         response.setHeader(HttpHeaders.SET_COOKIE, sessionCookie.toString());
         return ResponseEntity.ok(APIResponse.builder().success(true).message("logged_in").build());
