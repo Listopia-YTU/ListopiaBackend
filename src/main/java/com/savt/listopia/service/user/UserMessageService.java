@@ -9,7 +9,7 @@ import java.util.UUID;
 @Service
 public interface UserMessageService {
     void userReportMessage(Long userId, Long messageId);
-    void sendMessage(Long fromId, Long toId, String messageUnsafe);
+    PrivateMessageDTO sendMessage(Long fromId, Long toId, String messageUnsafe);
     void markPrivateMessageReported(Long messageId);
     Boolean isPrivateMessageReported(Long messageId);
     Page<PrivateMessageDTO> getAllReportedMessages(int page, int size);

@@ -42,7 +42,7 @@ public class UserMessageServiceImpl implements UserMessageService {
     }
 
     @Transactional
-    public void sendMessage(Long fromId, Long toId, String messageStr) {
+    public PrivateMessageDTO sendMessage(Long fromId, Long toId, String messageStr) {
         User sender = userRepository.findById(fromId).orElseThrow(UserNotFoundException::new);
         User receiver = userRepository.findById(toId).orElseThrow(UserNotFoundException::new);
         PrivateMessage message = new PrivateMessage();
@@ -51,7 +51,8 @@ public class UserMessageServiceImpl implements UserMessageService {
         message.setSentAtTimestampSeconds(Instant.now().getEpochSecond());
         message.setMessage(messageStr);
         notificationService.notifyNewMessage(sender, receiver, messageStr);
-        privateMessageRepository.save(message);
+        PrivateMessage sent = privateMessageRepository.save(message);
+        return privateMessageMapper.toDTO(sent);
     }
 
     @Transactional
