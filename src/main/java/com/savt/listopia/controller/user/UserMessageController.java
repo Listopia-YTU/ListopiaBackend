@@ -28,13 +28,13 @@ public class UserMessageController {
     }
 
     @PostMapping("/")
-    public ResponseEntity<APIResponse> Message(@Valid @RequestBody MessageUserRequest request) {
-        userMessageService.sendMessage(
+    public ResponseEntity<PrivateMessageDTO> Message(@Valid @RequestBody MessageUserRequest request) {
+        PrivateMessageDTO dto = userMessageService.sendMessage(
                 userService.getCurrentUserId().orElseThrow(() -> new UserNotFoundException("user_does_not_exists")),
                 userService.getUserIdFromUUID(request.getTo()),
                 request.getMessage()
         );
-        return ResponseEntity.ok( APIResponse.builder().success(true).message("sent_message").build() );
+        return ResponseEntity.ok( dto );
     }
 
     @PostMapping("/{id}/report")
