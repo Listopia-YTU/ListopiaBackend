@@ -48,4 +48,5 @@ jobs:
               -e MJ_APIKEY_PUBLIC="${{ secrets.MJ_APIKEY_PUBLIC }}" \
               -e MJ_APIKEY_PRIVATE="${{ secrets.MJ_APIKEY_PRIVATE }}" \
               -e RECAPTCHA_SECRET="${{ secrets.RECAPTCHA_SECRET }}" \
+              -e TMDB_APIKEY="${{ secrets.TMDB_APIKEY }}" \
               listopia-app
