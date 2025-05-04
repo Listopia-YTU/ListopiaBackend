@@ -17,6 +17,7 @@ public interface UserMessageService {
     Page<PrivateMessageDTO> getAllMessagesUserSent(Long userId, int page, int size);
     Page<PrivateMessageDTO> getAllMessagesSentTo(Long userId, Long toId, int page, int size);
     Page<PrivateMessageDTO> getAllMessagesReceivedFrom(Long userId, Long fromId, int page, int size);
+    Page<PrivateMessageDTO> getAllMessagesWith(Long userId, UUID friendUUid, int page, int size);
 
     void markAsRead(Long userId, Long receiverId, Long messageId);
 }

@@ -17,6 +17,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.util.UUID;
 
 @Service
 public class UserMessageServiceImpl implements UserMessageService {
@@ -89,6 +90,15 @@ public class UserMessageServiceImpl implements UserMessageService {
     public Page<PrivateMessageDTO> getAllMessagesReceivedFrom(Long userId, Long fromId, int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("sentAtTimestampSeconds").descending());
         return privateMessageMapper.toDTOPage(privateMessageRepository.findAllByFromUserIdAndToUserId(fromId, userId, pageable));
+    }
+
+    @Override
+    public Page<PrivateMessageDTO> getAllMessagesWith(Long userId, UUID friendUUid, int page, int size) {
+        User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
+        User receiver = userRepository.findByUuid(friendUUid).orElseThrow(UserNotFoundException::new);
+        Pageable pageable = PageRequest.of(page, size, Sort.by("sentAtTimestampSeconds").descending());
+        Page<PrivateMessage> messages = privateMessageRepository.findAllBetweenUsers(user.getId(), receiver.getId(), pageable);
+        return privateMessageMapper.toDTOPage(messages);
     }
 
     @Override
