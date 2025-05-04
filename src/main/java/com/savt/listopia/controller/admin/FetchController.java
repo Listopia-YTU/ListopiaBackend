@@ -6,6 +6,8 @@ import com.savt.listopia.util.FetchUtil;
 import info.movito.themoviedbapi.tools.TmdbException;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -16,6 +18,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/v1/admin/fetch")
 public class FetchController {
+    private static final Logger LOGGER = LoggerFactory.getLogger(FetchController.class);
+
     private final FetchUtil fetchUtil;
     private final AuthService authService;
 
@@ -27,6 +31,7 @@ public class FetchController {
     @PostMapping("/genres")
     public ResponseEntity<String> fetchGenres() throws TmdbException {
         authService.requireRoleOrThrow(UserRole.ADMIN);
+        LOGGER.info("fetchGenres: fetching genres");
         fetchUtil.fetchGenres();
         return new ResponseEntity<>("Fetched genres", HttpStatus.CREATED);
     }
@@ -38,6 +43,7 @@ public class FetchController {
                                               @RequestParam(name = "fetchAllImages", defaultValue = "false", required = false) Boolean fetchAllImages,
                                               @RequestParam(name = "fetchKeywords", defaultValue = "false", required = false) Boolean fetchKeywords) {
         authService.requireRoleOrThrow(UserRole.ADMIN);
+        LOGGER.info("fetchGenres: fetching movies");
         fetchUtil.fetchMovies(startId, endId, minPopularity, fetchAllImages, fetchKeywords);
         return new ResponseEntity<>("Fetching movies is completed", HttpStatus.CREATED);
     }

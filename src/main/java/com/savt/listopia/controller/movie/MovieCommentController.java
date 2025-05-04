@@ -7,6 +7,8 @@ import com.savt.listopia.service.UserService;
 import com.savt.listopia.service.user.UserMovieService;
 import com.savt.listopia.util.UUIDParser;
 import jakarta.validation.constraints.Max;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -16,6 +18,8 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/v1")
 @Validated
 public class MovieCommentController {
+    private static final Logger LOGGER = LoggerFactory.getLogger(MovieCommentController.class);
+
     private final UserService userService;
     private final UserMovieService userMovieService;
 
@@ -31,6 +35,7 @@ public class MovieCommentController {
             @RequestParam(name = "isSpoiler", required = false) Boolean isSpoiler
     ) {
         Long userId = userService.getCurrentUserIdOrThrow();
+        LOGGER.info("commentMovie: creating movie comment for movieId: {}", movieId);
         MovieCommentDTO dto = userMovieService.createMovieComment(userId, movieId, isSpoiler, message);
         return ResponseEntity.ok(dto);
     }
@@ -56,6 +61,7 @@ public class MovieCommentController {
     public ResponseEntity<APIResponse> reportMessage(
             @PathVariable Long commentId
     ) {
+        LOGGER.info("reportMessage: reporting message with Id: {}", commentId);
         userMovieService.reportMovieComment(commentId);
         return ResponseEntity.ok(APIResponse.builder().success(true).message("movie_comment_reported").build());
     }
@@ -67,6 +73,7 @@ public class MovieCommentController {
             @RequestParam(name = "isSpoiler", required = false) Boolean isSpoiler
     ) {
         Long userId = userService.getCurrentUserIdOrThrow();
+        LOGGER.info("changeComment: editing movie comment with it: {}", commentId);
         MovieCommentDTO dto = userMovieService.updateMovieComment(userId, commentId, isSpoiler, message);
         return ResponseEntity.ok(dto);
     }
@@ -76,6 +83,7 @@ public class MovieCommentController {
             @PathVariable Long commentId
     ) {
         Long userId = userService.getCurrentUserIdOrThrow();
+        LOGGER.info("deleteComment: deleting movie comment with it: {}", commentId);
         userMovieService.deleteMovieComment(userId, commentId);
         return ResponseEntity.ok(APIResponse.builder().success(true).message("movie_comment_deleted").build());
     }
@@ -84,6 +92,7 @@ public class MovieCommentController {
     public ResponseEntity<MovieCommentDTO> getMovieComment(
             @PathVariable Long commentId
     ) {
+        LOGGER.info("getMovieComment: getting movie comment with it: {}", commentId);
         MovieCommentDTO dto = userMovieService.getMovieCommentById(commentId);
         return ResponseEntity.ok(dto);
     }

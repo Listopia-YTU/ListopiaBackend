@@ -1,5 +1,6 @@
 package com.savt.listopia.controller;
 
+import com.savt.listopia.config.AppConstants;
 import com.savt.listopia.model.user.Session;
 import com.savt.listopia.payload.response.APIResponse;
 import com.savt.listopia.payload.request.SignInRequest;
@@ -40,6 +41,7 @@ public class AuthController {
         String clientIp = request.getRemoteAddr();
         captchaService.validateCaptcha(token, "register", clientIp);
 
+        LOGGER.info("signUp: signUp request arrived with mail: {}", signUpRequest.getEmail());
         authService.handleSignUp(signUpRequest);
         return ResponseEntity.ok(APIResponse.success("signup_success_verify_email"));
     }
@@ -50,6 +52,7 @@ public class AuthController {
         String clientIp = request.getRemoteAddr();
         captchaService.validateCaptcha(token, "login", clientIp);
 
+        LOGGER.info("signIn: signIn request arrived with username: {}", signInRequest.getUsername());
         ResponseCookie sessionCookie = authService.handleSignIn(signInRequest.getUsername(), signInRequest.getPassword());
         response.setHeader(HttpHeaders.SET_COOKIE, sessionCookie.toString());
         return ResponseEntity.ok(APIResponse.builder().success(true).message("logged_in").build());
@@ -58,6 +61,7 @@ public class AuthController {
     @PostMapping("/signout")
     public ResponseEntity<APIResponse> signOut(HttpServletResponse response) {
         Session session1 = sessionService.getCurrentSession();
+        LOGGER.info("signOut: signOut request arrived from user with uuid: {}", session1.getUuid());
         sessionService.deleteSession(session1);
 
         Cookie deleteCookie = new Cookie("_SESSION", "");
@@ -75,6 +79,7 @@ public class AuthController {
             @RequestParam String email,
             @RequestParam String token
     ) {
+        LOGGER.info("verify: verify request arrived with mail & token: {} - {}", email, token);
         String message = authService.handleAccountVerification(email, token);
         // TODO: fix main pls
         String redirectTo = "https://ensargok.com/login?message=" + message;

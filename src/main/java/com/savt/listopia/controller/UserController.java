@@ -57,6 +57,7 @@ public class UserController {
     @PutMapping("/password")
     public ResponseEntity<APIResponse> changePassword(@Valid @RequestBody ChangePassword req) {
         Long userId = userService.getCurrentUserId().orElseThrow(UserNotAuthorizedException::new);
+        LOGGER.info("changePassword: request from userId {}", userId);
         userService.changePassword(userId, req.getPassword());
         return ResponseEntity.ok( APIResponse.success("password_changed") );
     }
@@ -64,6 +65,7 @@ public class UserController {
     @PutMapping("/biography")
     public ResponseEntity<APIResponse> changeBiography(@Valid @RequestBody ChangeBiography req) {
         Long userId = userService.getCurrentUserId().orElseThrow(UserNotAuthorizedException::new);
+        LOGGER.info("changeBiography: request from userId {}", userId);
         userService.changeBiography(userId, req.getBiography());
         return ResponseEntity.ok( APIResponse.success("biography_changed") );
     }
@@ -78,6 +80,7 @@ public class UserController {
     @DeleteMapping("/me")
     public ResponseEntity<APIResponse> deleteMe() {
         Long userId = userService.getCurrentUserId().orElseThrow(UserNotAuthorizedException::new);
+        LOGGER.info("deleteMe: request from userId {}", userId);
         userService.deleteAccount(userId);
         return ResponseEntity.ok( APIResponse.success("me_deleted") );
     }
