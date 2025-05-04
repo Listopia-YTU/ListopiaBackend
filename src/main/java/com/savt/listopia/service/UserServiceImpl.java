@@ -145,6 +145,24 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public void editUser(Long userId, UserDTO userNew) {
+        User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
+
+        user.setUsername(userNew.getUsername());
+        user.setFirstName(userNew.getFirstName());
+        user.setLastName(userNew.getLastName());
+        user.setBiography(userNew.getBiography());
+        user.setRole(userNew.getRole());
+        user.setProfilePicture(userNew.getProfilePicture());
+
+        try {
+            userRepository.save(user);
+        } catch (RuntimeException e) {
+            throw new APIException("unknown_database_error: " + e.getMessage() );
+        }
+    }
+
+    @Override
     public Page<UserActivityDTO> getUserActivities(Long userId, int pageNumber, int pageSize) {
         User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
         return userActivityService.getUserActivities(user, pageNumber, pageSize);
