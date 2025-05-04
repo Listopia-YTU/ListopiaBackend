@@ -98,6 +98,18 @@ public class UserMessageController {
         return ResponseEntity.ok(messageDTOS);
     }
 
+    @GetMapping("/with/{uuid}")
+    public ResponseEntity<Page<PrivateMessageDTO>> getMessagesWith(
+            @PathVariable String uuid,
+            @RequestParam(name = "pageNumber", defaultValue = AppConstants.PAGE_NUMBER, required = false) Integer pageNumber,
+            @Max(50) @RequestParam(name = "pageSize", defaultValue = AppConstants.PAGE_SIZE, required = false) Integer pageSize
+    ) {
+        Long userId = userService.getCurrentUserIdOrThrow();
+        UUID friendUuid = UUIDParser.parse(uuid);
+        Page<PrivateMessageDTO> messageDTOS = userMessageService.getAllMessagesWith(userId, friendUuid, pageNumber, pageSize);
+        return ResponseEntity.ok(messageDTOS);
+    }
+
     @PostMapping("/read")
     public ResponseEntity<APIResponse> markAsRead(
             @RequestParam(name = "userUuid") String userUuid,

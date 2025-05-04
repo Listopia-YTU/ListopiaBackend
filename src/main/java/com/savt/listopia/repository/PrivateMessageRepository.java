@@ -18,6 +18,13 @@ public interface PrivateMessageRepository extends JpaRepository<PrivateMessage, 
     Page<PrivateMessage> findAllByIsReportedTrue(Pageable page);
     Optional<PrivateMessage> findPrivateMessageById(Long id);
 
+    @Query("""
+        SELECT m FROM PrivateMessage m 
+        WHERE (m.fromUser.id = :userAId AND m.toUser.id = :userBId) 
+           OR (m.fromUser.id = :userBId AND m.toUser.id = :userAId)
+    """)
+    Page<PrivateMessage> findAllBetweenUsers(@Param("userAId") Long userAId, @Param("userBId") Long userBId, Pageable page);
+
     @Modifying
     @Query("UPDATE PrivateMessage pm SET pm.isRead = true WHERE pm.fromUser = :fromUser AND pm.toUser = :toUser AND pm.sentAtTimestampSeconds < :timestamp")
     int markMessagesAsReadBefore(
