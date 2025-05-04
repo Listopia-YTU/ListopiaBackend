@@ -33,7 +33,7 @@ public class AdminUserController {
         userService.deleteAccount(user.getId());
     }
 
-    @PutMapping("/{uuid}")
+    @PutMapping("/uuid/{uuid}")
     public void editAccount(
             @PathVariable("uuid") String uuid,
             @RequestBody UserDTO user
