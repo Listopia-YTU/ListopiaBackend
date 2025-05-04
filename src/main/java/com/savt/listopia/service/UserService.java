@@ -22,6 +22,7 @@ public interface UserService {
     void changePassword(Long userId, String password);
     void changeBiography(Long userId, String biography);
     void deleteAccount(Long userId);
+    void editUser(Long userId, UserDTO user);
 
     Page<UserActivityDTO> getUserActivities(Long userId, int pageNumber, int pageSize);
     Page<NotificationDTO> getUserNotifications(Long userId, Integer pageNumber, Integer pageSize);
