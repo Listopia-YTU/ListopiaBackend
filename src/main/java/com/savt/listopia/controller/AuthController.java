@@ -60,17 +60,17 @@ public class AuthController {
 
     @PostMapping("/signout")
     public ResponseEntity<APIResponse> signOut(HttpServletResponse response) {
-        Session session1 = sessionService.getCurrentSession();
-        LOGGER.info("signOut: signOut request arrived from user with uuid: {}", session1.getUuid());
-        sessionService.deleteSession(session1);
+        sessionService.deleteCurrentSession();
 
-        Cookie deleteCookie = new Cookie("_SESSION", "");
-        deleteCookie.setMaxAge(0);
-        deleteCookie.setPath("/");
-        response.addCookie(deleteCookie);
+        ResponseCookie deleteCookie = ResponseCookie.from("_SESSION", "")
+            .secure(true)
+            .httpOnly(true)
+            .path("/")
+            .sameSite("None")
+            .maxAge(AppConstants.SESSION_EXPIRY_TIME)
+            .build();
 
-        SecurityContextHolder.getContext().setAuthentication(null);
-
+        response.setHeader(HttpHeaders.SET_COOKIE, deleteCookie.toString());
         return ResponseEntity.ok(APIResponse.builder().success(true).message("logged_out").build());
     }
 
