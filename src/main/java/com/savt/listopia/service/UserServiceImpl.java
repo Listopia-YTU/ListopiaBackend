@@ -149,6 +149,7 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
 
         user.setUsername(userNew.getUsername());
+        user.setUsernameLower(UserUtil.usernameToLowerCase(userNew.getUsername()));
         user.setFirstName(userNew.getFirstName());
         user.setLastName(userNew.getLastName());
         user.setBiography(userNew.getBiography());
