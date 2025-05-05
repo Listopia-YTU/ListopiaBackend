@@ -55,18 +55,20 @@ public class NotificationServiceImpl implements NotificationService {
         }
     }
 
+    private String dtoToJson(Object object) {
+        try {
+            return objectMapper.writeValueAsString(object);
+        } catch (JsonProcessingException e) {
+            return "";
+        }
+    }
+
     @Override
     @Transactional
     public void notifyBecomeFriends(User user, User friend) {
         UserDTO friendDTO = userMapper.toDTO(friend);
-        String json;
-        try {
-            json = objectMapper.writeValueAsString(friendDTO);
-        } catch (JsonProcessingException e) {
-            LOGGER.error(e.getMessage());
-            return;
-        }
-        if (json == null || json.isEmpty()) {
+        String json = dtoToJson(friendDTO);
+        if (json.isEmpty()) {
             LOGGER.error("JSON object is null or empty: notifyBecomeFriends(): userId: {}, friendId: {}", user.getId(), friend.getId());
             return;
         }
@@ -81,14 +83,8 @@ public class NotificationServiceImpl implements NotificationService {
                 .message(message)
                 .from(fromDTO)
                 .build();
-        String json;
-        try {
-            json = objectMapper.writeValueAsString(newMessageNotificationDTO);
-        } catch (JsonProcessingException e) {
-            LOGGER.error(e.getMessage());
-            return;
-        }
-        if (json == null || json.isEmpty()) {
+        String json = dtoToJson(newMessageNotificationDTO);
+        if (json.isEmpty()) {
             LOGGER.error("JSON object is null or empty: notifyNewMessage(): userId: {}, fromId: {}", user.getId(), from.getId());
             return;
         }
@@ -99,14 +95,8 @@ public class NotificationServiceImpl implements NotificationService {
     @Transactional
     public void notifyFriendRequest(User user, User from) {
         UserDTO fromDTO = userMapper.toDTO(from);
-        String json;
-        try {
-            json = objectMapper.writeValueAsString(fromDTO);
-        } catch (JsonProcessingException e) {
-            LOGGER.error(e.getMessage());
-            return;
-        }
-        if (json == null || json.isEmpty()) {
+        String json = dtoToJson(fromDTO);
+        if (json.isEmpty()) {
             LOGGER.error("JSON object is null or empty: notifyFriendRequest(): userId: {}, fromId: {}", user.getId(), from.getId());
             return;
         }
