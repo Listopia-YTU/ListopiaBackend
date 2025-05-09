@@ -72,7 +72,10 @@ public class SessionServiceImpl implements SessionService {
 
     @Override
     public Session getAndUpdateSession(String uuidStr) {
-        UUID uuid = UUIDParser.parse(uuidStr);
+        UUID uuid = UUIDParser.parseOrNull(uuidStr);
+
+        if ( uuid == null )
+            return null;
 
         Session session = sessionRepository.findByUuid(uuid).orElse(null);
 
