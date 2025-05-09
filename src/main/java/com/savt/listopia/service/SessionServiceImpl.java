@@ -1,6 +1,7 @@
 package com.savt.listopia.service;
 
 import com.savt.listopia.config.AppConstants;
+import com.savt.listopia.exception.userException.UserNotAuthorizedException;
 import com.savt.listopia.model.user.Session;
 import com.savt.listopia.model.user.User;
 import com.savt.listopia.repository.SessionRepository;
@@ -57,6 +58,16 @@ public class SessionServiceImpl implements SessionService {
     @Override
     public void deleteUserSessions(User user) {
         sessionRepository.deleteUserSessions(user.getId());
+    }
+
+    @Override
+    public void deleteCurrentSession() {
+        Session session_ctx = getCurrentSession();
+        if ( session_ctx == null )
+            return;
+
+        Session sessionRepo = sessionRepository.findByUuid(session_ctx.getUuid()).orElseThrow(UserNotAuthorizedException::new);
+        sessionRepository.delete(sessionRepo);
     }
 
     @Override
