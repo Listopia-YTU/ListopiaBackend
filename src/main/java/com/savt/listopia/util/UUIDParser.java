@@ -20,4 +20,12 @@ public class UUIDParser {
     public static UUID parse(String uuid) {
         return parseUUIDorThrow(uuid);
     }
+
+    public static UUID parseOrNull(String uuid) {
+        try {
+            return parse(uuid);
+        } catch (Exception e) {
+            return null;
+        }
+    }
 }
