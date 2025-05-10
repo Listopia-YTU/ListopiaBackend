@@ -104,10 +104,6 @@ public class FetchUtil {
             movie.setWatchCount(0);
             movie.setLikeCount(0);
 
-            List<Translation> translations = movieDb.getTranslations().getTranslations()
-                    .stream().filter(t -> t.getIso6391().equals("tr"))
-                    .toList();
-
             Images images = movieDb.getImages();
 
             List<Artwork> backdropsArtwork;
