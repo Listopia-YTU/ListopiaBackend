@@ -13,6 +13,8 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.Objects;
+
 @Service
 public class CaptchaServiceImpl implements CaptchaService {
     private static final Logger LOGGER = LoggerFactory.getLogger(CaptchaServiceImpl.class);
@@ -51,14 +53,13 @@ public class CaptchaServiceImpl implements CaptchaService {
             throw new APIException("recaptcha_fail:"+e.getMessage());
         }
 
+        LOGGER.info("recaptcha response: {}", response.getBody());
+
         if (
-                response.getBody() == null
-                || response.getBody().getSuccess() == null
-                || !response.getBody().getSuccess()
-                || response.getBody().getScore() < 0.9
-                || response.getBody().getAction() == null
-                || !response.getBody().getAction().equalsIgnoreCase(action)
+            !Objects.requireNonNull(response.getBody()).getSuccess()
+            || response.getBody().getScore() < 0.9
         ) {
+            LOGGER.warn("recapcha invalid: {}", response.getBody());
             throw new APIException("recaptcha_invalid");
         }
 
