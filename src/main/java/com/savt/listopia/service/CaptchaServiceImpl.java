@@ -62,7 +62,7 @@ public class CaptchaServiceImpl implements CaptchaService {
             throw new APIException("recaptcha_fail:"+e.getMessage());
         }
 
-        LOGGER.info("recaptcha response: {}", Objects.requireNonNull(response.getBody()).getSuccess());
+        LOGGER.info("recaptcha response: {}, score: {}", Objects.requireNonNull(response.getBody()).getSuccess(), response.getBody().getScore());
 
         if (
             !Objects.requireNonNull(response.getBody()).getSuccess()
