@@ -12,7 +12,7 @@ public class RecaptchaResponse {
     private Boolean success;
 
     @JsonProperty("score")
-    private float score;
+    private Float score;
 
     @JsonProperty("action")
     private String action;

@@ -62,13 +62,13 @@ public class CaptchaServiceImpl implements CaptchaService {
             throw new APIException("recaptcha_fail:"+e.getMessage());
         }
 
-        LOGGER.info("recaptcha response: {}", Objects.requireNonNull(response.getBody()).getSuccess());
+        LOGGER.info("recaptcha response: {}, score: {}", Objects.requireNonNull(response.getBody()).getSuccess(), response.getBody().getScore());
 
         if (
             !Objects.requireNonNull(response.getBody()).getSuccess()
             || response.getBody().getScore() < 0.9
         ) {
-            LOGGER.warn("recapcha invalid: {}", response.getBody());
+            LOGGER.warn("recapcha invalid hostname: {}", response.getBody().getHostname());
             throw new APIException("recaptcha_invalid");
         }
 
