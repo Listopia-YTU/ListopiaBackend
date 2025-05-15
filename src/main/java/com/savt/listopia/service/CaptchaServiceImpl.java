@@ -10,10 +10,12 @@ import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.Objects;
+import java.util.regex.Pattern;
 
 @Service
 public class CaptchaServiceImpl implements CaptchaService {
@@ -25,14 +27,21 @@ public class CaptchaServiceImpl implements CaptchaService {
     private String verifyUrl;
     private final RestTemplate restTemplate;
 
+    private static Pattern RESPONSE_PATTERN = Pattern.compile("[A-Za-z0-9_-]+");
+
     public CaptchaServiceImpl(RestTemplate restTemplate) {
         this.restTemplate = restTemplate;
     }
 
+    @Override
     public void validateCaptcha(String recaptchaToken, String action, String remoteIp) {
         if (!SpringEnvironment.isProduction()) {
             System.out.println("Not production, recaptha captcha service is not available");
             return;
+        }
+
+        if(!responseSanityCheck(recaptchaToken)) {
+            throw new APIException("recaptchaToken contains invalid characters");
         }
 
         HttpHeaders headers = new HttpHeaders();
@@ -53,7 +62,7 @@ public class CaptchaServiceImpl implements CaptchaService {
             throw new APIException("recaptcha_fail:"+e.getMessage());
         }
 
-        LOGGER.info("recaptcha response: {}", response.getBody());
+        LOGGER.info("recaptcha response: {}", Objects.requireNonNull(response.getBody()).getSuccess());
 
         if (
             !Objects.requireNonNull(response.getBody()).getSuccess()
@@ -64,4 +73,9 @@ public class CaptchaServiceImpl implements CaptchaService {
         }
 
     }
+
+    private boolean responseSanityCheck(String response) {
+        return StringUtils.hasLength(response) && RESPONSE_PATTERN.matcher(response).matches();
+    }
+
 }
