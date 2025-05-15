@@ -1,4 +1,29 @@
 package com.savt.listopia.model;
 
-public record RecaptchaResponse(Boolean success,String challege_ts,String hostname,Double score, String action) {
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Getter;
+
+import java.util.List;
+
+@Getter
+public class RecaptchaResponse {
+
+    @JsonProperty("success")
+    private Boolean success;
+
+    @JsonProperty("score")
+    private float score;
+
+    @JsonProperty("action")
+    private String action;
+
+    @JsonProperty("challenge_ts")
+    private String challengeTs;
+
+    @JsonProperty("hostname")
+    private String hostname;
+
+    @JsonProperty("error-codes")
+    private List<String> errorCodes;
+
 }
