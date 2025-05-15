@@ -10,4 +10,5 @@ public class AppConstants {
 
     public static final Duration SESSION_EXPIRY_DURATION = Duration.ofDays(7);
     public static final Long SESSION_EXPIRY_TIME = SESSION_EXPIRY_DURATION.toMillis();
+    public static final Float RECAPTCHA_SCORE = 0.5F;
 }

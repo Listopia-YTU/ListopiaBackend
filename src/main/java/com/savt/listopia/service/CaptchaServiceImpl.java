@@ -1,5 +1,6 @@
 package com.savt.listopia.service;
 
+import com.savt.listopia.config.AppConstants;
 import com.savt.listopia.exception.APIException;
 import com.savt.listopia.model.RecaptchaResponse;
 import com.savt.listopia.util.SpringEnvironment;
@@ -66,7 +67,7 @@ public class CaptchaServiceImpl implements CaptchaService {
 
         if (
             !Objects.requireNonNull(response.getBody()).getSuccess()
-            || response.getBody().getScore() < 0.9
+            || response.getBody().getScore() < AppConstants.RECAPTCHA_SCORE
         ) {
             LOGGER.warn("recapcha invalid hostname: {}", response.getBody().getHostname());
             throw new APIException("recaptcha_invalid");
