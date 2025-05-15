@@ -3,15 +3,20 @@ package com.savt.listopia.service;
 import com.savt.listopia.exception.APIException;
 import com.savt.listopia.model.RecaptchaResponse;
 import com.savt.listopia.util.SpringEnvironment;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 @Service
 public class CaptchaServiceImpl implements CaptchaService {
+    private static final Logger LOGGER = LoggerFactory.getLogger(CaptchaServiceImpl.class);
+
     @Value("${recaptcha.secretKey}")
     private String secretKey;
     @Value("${recaptcha.verifyUrl}")
@@ -35,18 +40,24 @@ public class CaptchaServiceImpl implements CaptchaService {
         map.add("response", recaptchaToken);
         map.add("remoteip", remoteIp);
         HttpEntity<MultiValueMap<String,String>> entity = new HttpEntity<>(map,headers);
-        ResponseEntity<RecaptchaResponse> response = restTemplate.exchange(verifyUrl,
-                HttpMethod.POST,
-                entity,
-                RecaptchaResponse.class);
+        ResponseEntity<RecaptchaResponse> response;
+        try {
+            response = restTemplate.exchange(verifyUrl,
+                    HttpMethod.POST,
+                    entity,
+                    RecaptchaResponse.class);
+        } catch (RestClientException e) {
+            LOGGER.error("Failed to call recaptcha: {}", e.getMessage());
+            throw new APIException("recaptcha_fail:"+e.getMessage());
+        }
 
         if (
                 response.getBody() == null
-                || !response.getBody().success()
-                || response.getBody().score() == null
-                || response.getBody().score() < 0.9
-                || response.getBody().action() == null
-                || !response.getBody().action().equalsIgnoreCase(action)
+                || response.getBody().getSuccess() == null
+                || !response.getBody().getSuccess()
+                || response.getBody().getScore() < 0.9
+                || response.getBody().getAction() == null
+                || !response.getBody().getAction().equalsIgnoreCase(action)
         ) {
             throw new APIException("recaptcha_invalid");
         }
